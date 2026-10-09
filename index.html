@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description"
+    content="MPDO Building Permit Processing System — Secure online application portal for the Municipal Planning and Development Office">
+  <title>MPDO — Building Permit System | Login</title>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/animations.css">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    body {
+      overflow: hidden;
+    }
+
+    .auth-page {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+
+
+    .auth-visual {
+      position: relative;
+      background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .auth-visual-content {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      padding: var(--sp-8);
+      max-width: 480px;
+    }
+
+    .auth-visual-logo {
+      width: 80px;
+      height: 80px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: var(--radius-xl);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+      margin: 0 auto var(--sp-6);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .auth-visual h1 {
+      font-size: var(--text-3xl);
+      color: #ffffff;
+      margin-bottom: var(--sp-4);
+    }
+
+    .auth-visual p {
+      color: rgba(255, 255, 255, 0.8);
+      font-size: var(--text-sm);
+      line-height: 1.7;
+    }
+
+
+    .feature-list {
+      margin-top: var(--sp-8);
+      display: flex;
+      flex-direction: column;
+      gap: var(--sp-3);
+      text-align: left;
+    }
+
+    .feature-item {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-3);
+      padding: var(--sp-3) var(--sp-4);
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: var(--radius-lg);
+    }
+
+    .feature-icon {
+      font-size: 1.2rem;
+      width: 32px;
+      text-align: center;
+    }
+
+    .feature-text {
+      color: rgba(255, 255, 255, 0.9);
+      font-size: var(--text-sm);
+    }
+
+    .auth-panel {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: var(--sp-8);
+      background: var(--bg);
+      overflow-y: auto;
+    }
+
+    .auth-card {
+      width: 100%;
+      max-width: 440px;
+    }
+
+
+    .pwd-wrapper {
+      position: relative;
+    }
+
+    .pwd-toggle {
+      position: absolute;
+      right: var(--sp-3);
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      color: var(--text-muted);
+      font-size: var(--text-sm);
+      user-select: none;
+    }
+
+    .pwd-wrapper input {
+      padding-right: 48px;
+    }
+
+
+    @media (max-width: 768px) {
+      .auth-page {
+        grid-template-columns: 1fr;
+      }
+
+      .auth-visual {
+        display: none;
+      }
+
+      .auth-panel {
+        padding: var(--sp-4);
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+
+  <div id="page-loader"
+    style="position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:9999">
+    <div style="text-align:center">
+      <div
+        style="width:60px;height:60px;background:linear-gradient(135deg,var(--primary-dark),var(--primary));border-radius:var(--radius-xl);display:flex;align-items:center;justify-content:center;color:#fff;margin:0 auto var(--sp-4);animation:float 2s ease-in-out infinite">
+        <i data-lucide="building" style="width:32px;height:32px;"></i></div>
+      <div class="spinner"></div>
+    </div>
+  </div>
+
+  <div class="auth-page">
+
+
+    <div class="auth-visual">
+      <div
+        style="position:absolute;inset:0;opacity:0.04;background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);background-size:40px 40px">
+      </div>
+
+      <div class="auth-visual-content animate-fade-up">
+        <div class="auth-visual-logo"><i data-lucide="building" style="width:40px;height:40px;color:#fff;"></i></div>
+        <h1>MPDO Building Permit System</h1>
+        <p>AI-powered online building permit processing with GIS-based project location mapping for the Municipal
+          Planning and Development Office.</p>
+
+        <div class="feature-list">
+          <div class="feature-item delay-1 animate-fade-up">
+            <div class="feature-icon"><i data-lucide="cpu"
+                style="width:20px;height:20px;color:var(--primary-light);"></i></div>
+            <div class="feature-text">AI-assisted document evaluation and application prioritization</div>
+          </div>
+          <div class="feature-item delay-2 animate-fade-up">
+            <div class="feature-icon"><i data-lucide="map"
+                style="width:20px;height:20px;color:var(--primary-light);"></i></div>
+            <div class="feature-text">GIS-based project location mapping with coordinate validation</div>
+          </div>
+          <div class="feature-item delay-3 animate-fade-up">
+            <div class="feature-icon"><i data-lucide="smartphone"
+                style="width:20px;height:20px;color:var(--primary-light);"></i></div>
+            <div class="feature-text">Real-time application tracking and automated notifications</div>
+          </div>
+          <div class="feature-item delay-4 animate-fade-up">
+            <div class="feature-icon"><i data-lucide="shield-check"
+                style="width:20px;height:20px;color:var(--primary-light);"></i></div>
+            <div class="feature-text">Secure role-based access with full audit trail</div>
+          </div>
+        </div>
+
+        <div style="margin-top:var(--sp-8);padding-top:var(--sp-6);border-top:1px solid rgba(255,255,255,0.2)">
+          <div style="font-size:var(--text-xs);color:rgba(255,255,255,0.6)">AI assists MPDO personnel — all decisions
+            require authorized human review.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="auth-panel">
+      <div class="auth-card animate-fade-up">
+
+
+        <div class="auth-logo" style="display:none; text-align:center; margin-bottom:var(--sp-4);" id="mobile-logo">
+          <div class="auth-logo-icon" style="margin-bottom:var(--sp-2);"><i data-lucide="building"
+              style="width:32px;height:32px;color:var(--primary);"></i></div>
+          <h2 style="font-size:var(--text-xl); font-weight:700; color:var(--text);">MPDO Building Permit System</h2>
+        </div>
+
+        <div style="margin-bottom:var(--sp-6)">
+          <h3 style="font-size:var(--text-2xl);font-weight:700;margin-bottom:var(--sp-2)">Welcome back</h3>
+          <p style="color:var(--text-muted);font-size:var(--text-sm)">Sign in to your account or create a new one.</p>
+        </div>
+
+
+        <div class="auth-tabs" id="auth-tabs">
+          <div class="auth-tab active" id="tab-login-btn" onclick="switchTab('login')">Sign In</div>
+          <div class="auth-tab" id="tab-register-btn" onclick="switchTab('register')">Create Account</div>
+        </div>
+
+        <div id="login-form">
+          <form onsubmit="handleLogin(event)">
+            <div class="form-group">
+              <label class="form-label">Email Address</label>
+              <div class="input-group">
+                <span class="input-icon"><i data-lucide="mail"
+                    style="width:16px;height:16px;color:var(--text-muted);"></i></span>
+                <input type="email" id="login-email" class="form-control" placeholder="your@email.com" required
+                  autocomplete="email">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Password</label>
+              <div class="pwd-wrapper">
+                <input type="password" id="login-password" class="form-control" placeholder="••••••••" required
+                  autocomplete="current-password">
+                <span class="pwd-toggle" onclick="togglePwd('login-password',this)"><i data-lucide="eye"
+                    style="width:16px;height:16px;"></i></span>
+              </div>
+            </div>
+            <div class="flex items-center justify-between mb-5">
+              <label class="flex items-center gap-2" style="cursor:pointer">
+                <input type="checkbox" id="login-remember" style="width:14px;height:14px">
+                <span style="font-size:var(--text-sm);color:var(--text-secondary)">Remember me</span>
+              </label>
+            </div>
+            <div id="login-error" class="alert alert-danger mb-4 hidden">
+              <div class="alert-icon"><i data-lucide="alert-circle" style="width:16px;height:16px;"></i></div>
+              <div class="alert-content" id="login-error-msg"></div>
+            </div>
+            <button type="submit" id="login-btn" class="btn btn-primary btn-full btn-lg">
+              Sign In
+            </button>
+          </form>
+
+
+          <div class="demo-accounts mt-5">
+            <div class="demo-label"><i data-lucide="key"
+                style="width:14px;height:14px;vertical-align:middle;margin-right:4px;"></i> Demo Accounts (password:
+              <code>password</code>)</div>
+            <div class="demo-item">
+              <span class="demo-role"><i data-lucide="user"
+                  style="width:14px;height:14px;vertical-align:middle;margin-right:4px;"></i> Applicant</span>
+              <span class="demo-email">pedro@example.com</span>
+              <span class="demo-fill-btn" onclick="fillDemo('pedro@example.com')">Use &rarr;</span>
+            </div>
+            <div class="demo-item">
+              <span class="demo-role"><i data-lucide="building-2"
+                  style="width:14px;height:14px;vertical-align:middle;margin-right:4px;"></i> Staff</span>
+              <span class="demo-email">staff@mpdo.gov.ph</span>
+              <span class="demo-fill-btn" onclick="fillDemo('staff@mpdo.gov.ph')">Use &rarr;</span>
+            </div>
+            <div class="demo-item">
+              <span class="demo-role"><i data-lucide="settings"
+                  style="width:14px;height:14px;vertical-align:middle;margin-right:4px;"></i> Admin</span>
+              <span class="demo-email">admin@mpdo.gov.ph</span>
+              <span class="demo-fill-btn" onclick="fillDemo('admin@mpdo.gov.ph')">Use &rarr;</span>
+            </div>
+          </div>
+        </div>
+
+
+        <div id="register-form" class="hidden">
+          <form onsubmit="handleRegister(event)">
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Full Name <span class="required">*</span></label>
+                <input type="text" id="reg-name" class="form-control" placeholder="Juan dela Cruz" required
+                  autocomplete="name">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Email Address <span class="required">*</span></label>
+                <input type="email" id="reg-email" class="form-control" placeholder="your@email.com" required
+                  autocomplete="email">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Mobile Number <span class="required">*</span></label>
+                <input type="tel" id="reg-phone" class="form-control" placeholder="09171234567" required
+                  autocomplete="tel">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Applicant Type</label>
+                <select id="reg-type" class="form-control">
+                  <option>Individual</option>
+                  <option>Corporation</option>
+                  <option>Partnership</option>
+                  <option>Cooperative</option>
+                  <option>Government Agency</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Complete Address <span class="required">*</span></label>
+              <input type="text" id="reg-address" class="form-control"
+                placeholder="House No., Street, Barangay, Municipality, Province" required>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Password <span class="required">*</span></label>
+                <div class="pwd-wrapper">
+                  <input type="password" id="reg-password" class="form-control" placeholder="Min. 8 characters" required
+                    autocomplete="new-password">
+                  <span class="pwd-toggle" onclick="togglePwd('reg-password',this)"><i data-lucide="eye"
+                      style="width:16px;height:16px;"></i></span>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Confirm Password <span class="required">*</span></label>
+                <div class="pwd-wrapper">
+                  <input type="password" id="reg-confirm" class="form-control" placeholder="Repeat password" required
+                    autocomplete="new-password">
+                  <span class="pwd-toggle" onclick="togglePwd('reg-confirm',this)"><i data-lucide="eye"
+                      style="width:16px;height:16px;"></i></span>
+                </div>
+              </div>
+            </div>
+            <div id="reg-error" class="alert alert-danger mb-4 hidden">
+              <div class="alert-icon"><i data-lucide="alert-circle" style="width:16px;height:16px;"></i></div>
+              <div class="alert-content" id="reg-error-msg"></div>
+            </div>
+            <button type="submit" id="reg-btn" class="btn btn-primary btn-full btn-lg">
+              Create Account
+            </button>
+            <div style="font-size:var(--text-xs);color:var(--text-muted);text-align:center;margin-top:var(--sp-3)">
+              By creating an account, you agree to provide accurate and truthful information in compliance with
+              applicable Philippine laws and MPDO policies.
+            </div>
+          </form>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+
+  <script src="js/utils.js"></script>
+  <script src="js/db.js"></script>
+  <script src="js/audit.js"></script>
+  <script src="js/notifications.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+
+    (async function init() {
+      await DB.init();
+
+
+      if (Auth.isAuthenticated()) {
+        window.location.href = 'dashboard.html';
+        return;
+      }
+
+
+      document.getElementById('page-loader').remove();
+
+      if (window.innerWidth <= 768) {
+        document.getElementById('mobile-logo').style.display = 'block';
+      }
+
+      lucide.createIcons();
+    })();
+
+
+    function switchTab(tab) {
+      const loginForm = document.getElementById('login-form');
+      const regForm = document.getElementById('register-form');
+      const loginBtn = document.getElementById('tab-login-btn');
+      const regBtn = document.getElementById('tab-register-btn');
+
+      if (tab === 'login') {
+        loginForm.classList.remove('hidden');
+        regForm.classList.add('hidden');
+        loginBtn.classList.add('active');
+        regBtn.classList.remove('active');
+      } else {
+        loginForm.classList.add('hidden');
+        regForm.classList.remove('hidden');
+        loginBtn.classList.remove('active');
+        regBtn.classList.add('active');
+      }
+    }
+
+
+    function togglePwd(id, btn) {
+      const input = document.getElementById(id);
+      if (input.type === 'password') {
+        input.type = 'text';
+        btn.innerHTML = '<i data-lucide="eye-off" style="width:16px;height:16px;"></i>';
+      } else {
+        input.type = 'password';
+        btn.innerHTML = '<i data-lucide="eye" style="width:16px;height:16px;"></i>';
+      }
+      lucide.createIcons();
+    }
+
+
+    function fillDemo(email) {
+      document.getElementById('login-email').value = email;
+      document.getElementById('login-password').value = 'password';
+      document.getElementById('login-email').dispatchEvent(new Event('input'));
+    }
+
+    /* ── Handle Login ────────────────────────────────── */
+    async function handleLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('login-email').value;
+      const password = document.getElementById('login-password').value;
+      const remember = document.getElementById('login-remember').checked;
+
+      const btn = document.getElementById('login-btn');
+      btn.disabled = true;
+      btn.innerHTML = '<div class="spinner spinner-sm" style="border-top-color:#fff"></div> Signing in…';
+
+      const result = await Auth.login(email, password, remember);
+
+      btn.disabled = false;
+      btn.textContent = 'Sign In';
+
+      if (!result.ok) {
+        const errEl = document.getElementById('login-error');
+        const errMsg = document.getElementById('login-error-msg');
+        errEl.classList.remove('hidden');
+        errMsg.textContent = result.error;
+        document.getElementById('login-email').classList.add('is-invalid');
+        document.getElementById('login-password').classList.add('is-invalid');
+        return;
+      }
+
+      // Hide error if shown
+      document.getElementById('login-error').classList.add('hidden');
+
+      // Show success & redirect
+      btn.innerHTML = '✅ Success! Redirecting…';
+      btn.style.background = 'var(--success)';
+      setTimeout(() => { window.location.href = 'dashboard.html'; }, 800);
+    }
+
+    /* ── Handle Register ─────────────────────────────── */
+    async function handleRegister(e) {
+      e.preventDefault();
+      const data = {
+        fullName: document.getElementById('reg-name').value,
+        email: document.getElementById('reg-email').value,
+        phone: document.getElementById('reg-phone').value,
+        address: document.getElementById('reg-address').value,
+        applicantType: document.getElementById('reg-type').value,
+        password: document.getElementById('reg-password').value,
+        confirmPassword: document.getElementById('reg-confirm').value,
+      };
+
+      const btn = document.getElementById('reg-btn');
+      btn.disabled = true;
+      btn.innerHTML = '<div class="spinner spinner-sm" style="border-top-color:#fff"></div> Creating Account…';
+
+      const result = await Auth.register(data);
+
+      btn.disabled = false;
+      btn.textContent = 'Create Account';
+
+      if (!result.ok) {
+        const errEl = document.getElementById('reg-error');
+        const errMsg = document.getElementById('reg-error-msg');
+        errEl.classList.remove('hidden');
+        errMsg.textContent = result.error;
+        return;
+      }
+
+      document.getElementById('reg-error').classList.add('hidden');
+      btn.innerHTML = '🎉 Account Created! Redirecting…';
+      btn.style.background = 'var(--success)';
+      setTimeout(() => { window.location.href = 'dashboard.html'; }, 1000);
+    }
+
+    /* ── Clear validation on input ───────────────────── */
+    document.addEventListener('input', function (e) {
+      if (e.target.classList.contains('is-invalid')) {
+        e.target.classList.remove('is-invalid');
+      }
+    });
+  </script>
+</body>
+
+</html>

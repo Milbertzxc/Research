@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="MPDO Building Permit System Dashboard — Manage and track building permit applications online">
+  <title>MPDO — Building Permit System | Dashboard</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- App CSS -->
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/animations.css">
+
+  <style>
+    /* ── Dashboard Layout ─────────────────────────── */
+    .app-layout {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* ── Sidebar ──────────────────────────────────── */
+    .app-sidebar {
+      width: 260px;
+      min-height: 100vh;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      position: fixed; top: 0; left: 0; bottom: 0;
+      z-index: var(--z-sidebar);
+      transition: width var(--transition-base);
+      overflow: hidden;
+    }
+    .app-sidebar.collapsed { width: 64px; }
+
+    .sidebar-header {
+      padding: var(--sp-4) var(--sp-5);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: var(--sp-3);
+      flex-shrink: 0;
+    }
+    .sidebar-logo {
+      width: 36px; height: 36px; flex-shrink: 0;
+      background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+      border-radius: var(--radius-lg);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem;
+      box-shadow: 0 0 16px var(--primary-glow);
+    }
+    .sidebar-title {
+      font-size: var(--text-sm); font-weight: 700;
+      white-space: nowrap; overflow: hidden;
+      background: linear-gradient(135deg, var(--text), var(--text-secondary));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .sidebar-subtitle { font-size: var(--text-xs); color: var(--text-muted); white-space: nowrap; }
+
+    /* Nav */
+    .sidebar-nav {
+      flex: 1; overflow-y: auto; overflow-x: hidden;
+      padding: var(--sp-4) var(--sp-2);
+    }
+
+    /* Sidebar user info */
+    .sidebar-user {
+      padding: var(--sp-3) var(--sp-4);
+      border-top: 1px solid var(--border);
+      display: flex; align-items: center; gap: var(--sp-3);
+      flex-shrink: 0;
+    }
+    .sidebar-user-avatar {
+      width: 36px; height: 36px; flex-shrink: 0;
+      background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: var(--text-sm); font-weight: 700; color: white;
+    }
+    .sidebar-user-info { overflow: hidden; }
+    .sidebar-user-name { font-size: var(--text-sm); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sidebar-user-role { font-size: var(--text-xs); color: var(--text-muted); }
+
+    /* Sidebar actions row */
+    .sidebar-actions {
+      padding: var(--sp-2) var(--sp-3);
+      border-top: 1px solid var(--border);
+      display: flex; gap: var(--sp-2);
+      flex-shrink: 0;
+    }
+    .sidebar-action-btn {
+      flex: 1; padding: var(--sp-2);
+      border-radius: var(--radius-md);
+      background: transparent; border: none; cursor: pointer;
+      color: var(--text-muted);
+      transition: background var(--transition-fast), color var(--transition-fast);
+      font-size: var(--text-sm);
+    }
+    .sidebar-action-btn:hover { background: var(--surface-2); color: var(--text); }
+
+    /* ── Topbar ──────────────────────────────────── */
+    .app-topbar {
+      position: fixed; top: 0; left: 260px; right: 0;
+      height: 60px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center;
+      padding: 0 var(--sp-6);
+      z-index: calc(var(--z-sidebar) - 1);
+      transition: left var(--transition-base);
+      gap: var(--sp-4);
+    }
+    .app-topbar.sidebar-collapsed { left: 64px; }
+
+    .topbar-toggle {
+      width: 36px; height: 36px;
+      border-radius: var(--radius-md);
+      background: transparent; border: none; cursor: pointer;
+      color: var(--text-secondary);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem;
+      transition: background var(--transition-fast);
+    }
+    .topbar-toggle:hover { background: var(--surface-2); }
+
+    .topbar-title {
+      font-size: var(--text-lg); font-weight: 700;
+      flex: 1;
+    }
+
+    .topbar-actions { display: flex; align-items: center; gap: var(--sp-2); }
+
+    .topbar-btn {
+      width: 38px; height: 38px;
+      border-radius: var(--radius-md);
+      background: var(--surface-2); border: 1px solid var(--border);
+      cursor: pointer; font-size: 1rem;
+      display: flex; align-items: center; justify-content: center;
+      position: relative; color: var(--text);
+      transition: background var(--transition-fast);
+    }
+    .topbar-btn:hover { background: var(--surface-3); }
+
+    /* ── Main Content ────────────────────────────── */
+    .main-content {
+      margin-left: 260px;
+      padding-top: 60px;
+      min-height: 100vh;
+      background: var(--bg);
+      transition: margin-left var(--transition-base);
+    }
+    .main-content.sidebar-collapsed { margin-left: 64px; }
+
+    #view-container {
+      padding: var(--sp-8);
+      min-height: calc(100vh - 60px);
+    }
+
+    /* ── Collapsed Sidebar Behavior ─────────────── */
+    .app-sidebar.collapsed .sidebar-title,
+    .app-sidebar.collapsed .sidebar-subtitle,
+    .app-sidebar.collapsed .nav-group-label,
+    .app-sidebar.collapsed .nav-item-label,
+    .app-sidebar.collapsed .nav-item-badge,
+    .app-sidebar.collapsed .sidebar-user-info,
+    .app-sidebar.collapsed .sidebar-action-btn span { display: none; }
+
+    .app-sidebar.collapsed .sidebar-header { justify-content: center; padding: var(--sp-4) 0; }
+    .app-sidebar.collapsed .sidebar-user { justify-content: center; }
+    .app-sidebar.collapsed .sidebar-actions { justify-content: center; }
+
+    /* ── Chatbot FAB ─────────────────────────────── */
+    .chatbot-fab {
+      position: fixed; bottom: var(--sp-6); right: var(--sp-6);
+      width: 52px; height: 52px;
+      background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem; cursor: pointer;
+      box-shadow: 0 8px 24px var(--primary-glow);
+      z-index: var(--z-tooltip);
+      transition: transform var(--transition-base), box-shadow var(--transition-base);
+      border: none; color: white;
+    }
+    .chatbot-fab:hover { transform: scale(1.1); box-shadow: 0 12px 32px var(--primary-glow); }
+
+    .chatbot-window {
+      position: fixed; bottom: 80px; right: var(--sp-6);
+      width: 360px; max-height: 600px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-2xl);
+      box-shadow: var(--shadow-xl);
+      display: flex; flex-direction: column;
+      z-index: var(--z-tooltip);
+      overflow: hidden;
+      animation: slide-up 0.3s ease;
+    }
+    .chatbot-header {
+      padding: var(--sp-4);
+      background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+      display: flex; align-items: center; gap: var(--sp-3);
+    }
+    .chatbot-avatar { font-size: 1.5rem; }
+    .chatbot-info .chatbot-name { font-weight: 700; color: white; font-size: var(--text-sm); }
+    .chatbot-info .chatbot-status { font-size: var(--text-xs); color: rgba(255,255,255,0.7); }
+    .chatbot-close-btn { margin-left: auto; background: none; border: none; color: white; cursor: pointer; font-size: 1.2rem; }
+
+    .chatbot-messages {
+      flex: 1; overflow-y: auto; padding: var(--sp-4);
+      display: flex; flex-direction: column; gap: var(--sp-3);
+    }
+    .chat-suggestions {
+      padding: var(--sp-2) var(--sp-3);
+      display: flex; flex-wrap: wrap; gap: var(--sp-2);
+      border-top: 1px solid var(--border);
+    }
+    .chatbot-input-area {
+      padding: var(--sp-3);
+      border-top: 1px solid var(--border);
+      display: flex; gap: var(--sp-2);
+    }
+    .chatbot-send {
+      padding: var(--sp-2) var(--sp-3);
+      background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+      border: none; border-radius: var(--radius-md);
+      color: white; cursor: pointer; font-size: var(--text-sm);
+      flex-shrink: 0;
+    }
+
+    /* ── Spinner Page ────────────────────────────── */
+    .spinner-page {
+      display: flex; align-items: center; justify-content: center;
+      min-height: 300px;
+    }
+
+    /* ── Responsive ──────────────────────────────── */
+    @media (max-width: 1024px) {
+      .app-sidebar { transform: translateX(-100%); }
+      .app-sidebar.mobile-open { transform: translateX(0); }
+      .app-topbar { left: 0 !important; }
+      .main-content { margin-left: 0 !important; }
+      #view-container { padding: var(--sp-4); }
+    }
+    @media (max-width: 640px) {
+      .chatbot-window { width: calc(100vw - var(--sp-8)); right: var(--sp-4); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Page Loader -->
+<div id="page-loader" style="position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:9999">
+  <div style="text-align:center">
+    <div style="width:64px;height:64px;background:linear-gradient(135deg,var(--primary-dark),var(--primary));border-radius:var(--radius-xl);display:flex;align-items:center;justify-content:center;margin:0 auto var(--sp-4);box-shadow:0 0 40px var(--primary-glow);animation:float 2s ease-in-out infinite"><i data-lucide="building" style="width:32px;height:32px;color:#fff;"></i></div>
+    <div class="spinner"></div>
+    <div style="margin-top:var(--sp-4);color:var(--text-muted);font-size:var(--text-sm)">Loading MPDO System…</div>
+  </div>
+</div>
+
+<div class="app-layout">
+
+  <!-- ── Sidebar ──────────────────────────────────────── -->
+  <aside class="app-sidebar" id="app-sidebar">
+
+    <!-- Header / Logo -->
+    <div class="sidebar-header">
+      <div class="sidebar-logo"><i data-lucide="building" style="width:20px;height:20px;color:#fff;"></i></div>
+      <div>
+        <div class="sidebar-title">MPDO System</div>
+        <div class="sidebar-subtitle">Building Permits</div>
+      </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="sidebar-nav" id="sidebar-nav">
+      <!-- Populated by App.renderShell() -->
+    </nav>
+
+    <!-- User Info -->
+    <div class="sidebar-user">
+      <div class="sidebar-user-avatar" id="sidebar-avatar">?</div>
+      <div class="sidebar-user-info">
+        <div class="sidebar-user-name" id="sidebar-user-name">Loading…</div>
+        <div class="sidebar-user-role" id="sidebar-user-role"></div>
+      </div>
+    </div>
+
+    <!-- Sidebar Actions -->
+    <div class="sidebar-actions">
+      <button class="sidebar-action-btn" onclick="App.navigate('notifications')" title="Notifications" style="position:relative">
+        <i data-lucide="bell" style="width:16px;height:16px;"></i> <span>Alerts</span>
+        <span id="sidebar-notif-indicator" class="hidden" style="position:absolute;top:6px;right:6px;width:8px;height:8px;border-radius:50%;background:var(--danger)"></span>
+      </button>
+      <button class="sidebar-action-btn" onclick="handleLogout()" title="Logout">
+        <i data-lucide="log-out" style="width:16px;height:16px;"></i> <span>Logout</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ── Topbar ─────────────────────────────────────────── -->
+  <header class="app-topbar" id="app-topbar">
+    <button class="topbar-toggle" onclick="App.toggleSidebar(); document.getElementById('app-sidebar').classList.toggle('mobile-open')" aria-label="Toggle Sidebar">
+      ☰
+    </button>
+    <div class="topbar-title" id="topbar-title">Dashboard</div>
+
+    <div class="topbar-actions">
+      <!-- Notification Bell -->
+      <button class="topbar-btn" onclick="App.navigate('notifications')" title="Notifications" style="position:relative">
+        <i data-lucide="bell" style="width:20px;height:20px;"></i>
+        <span id="notif-badge" class="hidden" style="position:absolute;top:-4px;right:-4px;background:var(--danger);color:#fff;font-size:10px;font-weight:700;border-radius:999px;padding:1px 5px;min-width:16px;text-align:center;line-height:16px"></span>
+      </button>
+
+      <!-- Reports shortcut (staff/admin) -->
+      <button class="topbar-btn" id="topbar-reports-btn" onclick="App.navigate('reports')" title="Reports"><i data-lucide="pie-chart" style="width:20px;height:20px;"></i></button>
+
+      <!-- GIS Map shortcut -->
+      <button class="topbar-btn" id="topbar-map-btn" onclick="App.navigate('gis-map')" title="GIS Map"><i data-lucide="map" style="width:20px;height:20px;"></i></button>
+
+      <!-- User Avatar (click to logout) -->
+      <button class="topbar-btn" onclick="showUserMenu()" title="Account" style="font-size:0.8rem;font-weight:700;overflow:hidden">
+        <span id="topbar-avatar">?</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ── Main Content ──────────────────────────────────── -->
+  <main class="main-content" id="main-content">
+    <div id="view-container">
+      <!-- SPA views rendered here by App.renderView() -->
+    </div>
+  </main>
+
+</div>
+
+<!-- ── Chatbot FAB ──────────────────────────────────────── -->
+<button class="chatbot-fab" id="chatbot-fab" title="Ask MPDO Assistant" aria-label="Open chat assistant">
+  <i data-lucide="message-circle" style="width:24px;height:24px;"></i>
+</button>
+
+<!-- ── Chatbot Window ────────────────────────────────────── -->
+<div class="chatbot-window hidden" id="chatbot-window">
+  <div class="chatbot-header">
+    <div class="chatbot-avatar"><i data-lucide="bot" style="width:24px;height:24px;"></i></div>
+    <div class="chatbot-info">
+      <div class="chatbot-name">MPDO Assistant</div>
+      <div class="chatbot-status">● Online — Always ready to help</div>
+    </div>
+    <button class="chatbot-close-btn" id="chatbot-close" aria-label="Close chat">✕</button>
+  </div>
+  <div class="chatbot-messages" id="chatbot-messages"></div>
+  <div id="chatbot-suggestions" class="chat-suggestions"></div>
+  <div class="chatbot-input-area">
+    <input type="text" id="chatbot-input" class="form-control" placeholder="Ask about requirements, status, procedures…">
+    <button class="chatbot-send" id="chatbot-send" aria-label="Send message">➤</button>
+  </div>
+  <div style="padding:var(--sp-2) var(--sp-3);font-size:var(--text-xs);color:var(--text-muted);border-top:1px solid var(--border);text-align:center">
+    <i data-lucide="bot" style="width:14px;height:14px;vertical-align:middle;"></i> AI-generated responses. For official guidance, contact the MPDO.
+  </div>
+</div>
+
+<!-- ── User Menu Popup ───────────────────────────────────── -->
+<div id="user-menu" class="hidden" style="position:fixed;top:68px;right:var(--sp-6);background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-xl);box-shadow:var(--shadow-xl);z-index:calc(var(--z-sidebar)+10);min-width:220px;overflow:hidden">
+  <div style="padding:var(--sp-4);border-bottom:1px solid var(--border)">
+    <div class="font-semibold" id="umenu-name">—</div>
+    <div class="text-xs text-muted" id="umenu-email">—</div>
+    <div class="text-xs mt-1"><span class="badge badge-primary" id="umenu-role">—</span></div>
+  </div>
+  <div style="padding:var(--sp-2)">
+    <button class="btn btn-ghost btn-full text-left" style="justify-content:flex-start" onclick="closeUserMenu()"><i data-lucide="x" style="width:14px;height:14px;margin-right:6px;"></i> Close Menu</button>
+    <button class="btn btn-ghost btn-full text-left text-danger" style="justify-content:flex-start" onclick="handleLogout()"><i data-lucide="log-out" style="width:14px;height:14px;margin-right:6px;"></i> Logout</button>
+  </div>
+</div>
+
+<!-- ── Toast Container ───────────────────────────────────── -->
+<div id="toast-container"></div>
+
+<!-- ── AI Override Modal ─────────────────────────────────── -->
+<div id="ai-override-modal" class="modal-backdrop hidden">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <div class="modal-title">Override AI Recommendation</div>
+      <div class="modal-close" onclick="document.getElementById('ai-override-modal').classList.add('hidden')">×</div>
+    </div>
+    <div class="modal-body">
+      <div class="alert alert-ai mb-4">
+        <div class="alert-icon"><i data-lucide="bot" style="width:16px;height:16px;"></i></div>
+        <div class="alert-content">Overriding AI recommendations must be done by authorized MPDO personnel. An audit log entry will be created.</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Reason for Override <span class="required">*</span></label>
+        <textarea id="override-notes" class="form-control" rows="3" placeholder="Explain why the AI recommendation is being overridden…"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="document.getElementById('ai-override-modal').classList.add('hidden')">Cancel</button>
+      <button class="btn btn-danger" onclick="confirmAIOverride()">Override Recommendation</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Scripts ───────────────────────────────────────────── -->
+<!-- External Libraries -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<!-- App Modules (dependency order) -->
+<script src="js/utils.js"></script>
+<script src="js/db.js"></script>
+<script src="js/audit.js"></script>
+<script src="js/notifications.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/workflow.js"></script>
+<script src="js/ai.js"></script>
+<script src="js/chatbot.js"></script>
+<script src="js/map.js"></script>
+<script src="js/documents.js"></script>
+<script src="js/reports.js"></script>
+<script src="js/admin.js"></script>
+<script src="js/app.js"></script>
+
+<script>
+  /* ── Bootstrap ─────────────────────────────────── */
+  window.addEventListener('DOMContentLoaded', async () => {
+    // Set topbar avatar
+    const session = Auth.getSession();
+    if (session) {
+      const av = document.getElementById('topbar-avatar');
+      if (av) av.textContent = session.avatar || session.fullName?.slice(0,2).toUpperCase() || '?';
+    }
+
+    await DB.init();
+    await App.init();
+
+    // Show/hide topbar buttons based on role
+    const role = Auth.getSession()?.role;
+    const reportsBtn = document.getElementById('topbar-reports-btn');
+    const mapBtn     = document.getElementById('topbar-map-btn');
+    if (role === 'applicant') {
+      reportsBtn?.classList.add('hidden');
+    }
+
+    lucide.createIcons();
+  });
+
+  /* ── Logout ─────────────────────────────────────── */
+  function handleLogout() {
+    closeUserMenu();
+    if (confirm('Are you sure you want to log out?')) {
+      Auth.logout();
+      window.location.href = 'index.html';
+    }
+  }
+
+  /* ── User Menu ──────────────────────────────────── */
+  function showUserMenu() {
+    const menu    = document.getElementById('user-menu');
+    const session = Auth.getSession();
+    if (!session) return;
+    document.getElementById('umenu-name').textContent  = session.fullName;
+    document.getElementById('umenu-email').textContent = session.email;
+    document.getElementById('umenu-role').textContent  = Utils.toTitleCase(session.role);
+    menu.classList.toggle('hidden');
+  }
+  function closeUserMenu() {
+    document.getElementById('user-menu')?.classList.add('hidden');
+  }
+  document.addEventListener('click', e => {
+    if (!e.target.closest('#user-menu') && !e.target.closest('.topbar-btn')) {
+      closeUserMenu();
+    }
+  });
+
+  /* ── AI Override Modal ──────────────────────────── */
+  function confirmAIOverride() {
+    const modal  = document.getElementById('ai-override-modal');
+    const notes  = document.getElementById('override-notes').value.trim();
+    const appId  = modal.dataset.appId;
+    const container = modal.dataset.container;
+    if (!notes) { Utils.toast('Please provide a reason for the override.', 'warning'); return; }
+    const session = Auth.getSession();
+    AI.overrideAIRecommendation(appId, session.userId, notes);
+    modal.classList.add('hidden');
+    Utils.toast('AI recommendation overridden by staff.', 'success');
+    if (container) AI.renderAIPanel(appId, container);
+  }
+
+  /* ── Mobile sidebar close on nav ───────────────── */
+  document.getElementById('sidebar-nav')?.addEventListener('click', () => {
+    if (window.innerWidth <= 1024) {
+      document.getElementById('app-sidebar').classList.remove('mobile-open');
+    }
+  });
+</script>
+</body>
+</html>
