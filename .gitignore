@@ -1,3 +1,6 @@
 node_modules/
+buenavista/node_modules/
+buenavista/dist/
 *.log
 .DS_Store
+.env

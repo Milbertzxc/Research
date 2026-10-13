@@ -376,9 +376,6 @@
   gap: var(--sp-2);
 }
 
-.card-body {
-  /* inherits padding from .card */
-}
 
 .card-footer {
   margin-top: var(--sp-4);
@@ -759,6 +756,8 @@
   transition: all var(--transition-fast);
   outline: none;
   -webkit-appearance: none;
+  appearance: none;
+
 }
 
 .form-control:focus {
@@ -931,7 +930,9 @@ textarea.form-control {
 .file-item-name {
   color: var(--text-primary);
   font-weight: 500;
-  truncate: both;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .file-item-size {
@@ -1260,7 +1261,6 @@ table.data-table tbody tr.selected {
   border-color: var(--danger);
 }
 
-.timeline-content {}
 
 .timeline-date {
   font-size: var(--text-xs);

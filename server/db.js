@@ -1,6 +1,21 @@
+require('dotenv').config();
 const mysql = require('mysql2/promise');
 const { spawn } = require('child_process');
 const fs = require('fs');
+const path = require('path');
+const crypto = require('crypto');
+const bcrypt = require('bcryptjs');
+
+// Legacy SHA-256(password + global salt) — pre-Phase-2 hashes. Verified only
+// as a fallback so existing accounts keep working; upgraded to bcrypt on next
+// successful login. See verifyPassword().
+const LEGACY_SALT = 'mpdo_salt_2025';
+const BCRYPT_COST = 10;
+// Hash value historically written into seed/demo accounts. It matches NO known
+// password (the old client-side backdoor bypassed comparison entirely), so
+// seed accounts carrying it get a documented DEMO password reset in
+// upgradeDemoPasswords(). Real user rows are never touched by that reset.
+const ORPHAN_DEMO_HASH = 'b6bcde04a9a36a7c4a5c5b8a4f95e9c2e8c8d0f5b1a3e2d1c0f7b4a9e8d5c6b7';
 
 // XAMPP MySQL defaults with environment variable overrides
 const dbConfig = {
@@ -209,7 +224,9 @@ async function initDb() {
             createdAt DATETIME
         )`);
 
+        await runMigrations();
         await seedData();
+        await upgradeDemoPasswords();
         console.log("Database initialization complete.");
 
     } catch (err) {
@@ -427,6 +444,157 @@ async function seedData() {
     console.log("Seeding complete.");
 }
 
+/* ── Phase 2: migrations, password hashing, server sessions ─────────── */
+
+// Numbered SQL migrations in ./migrations, tracked in schema_migrations.
+// Each file runs once; statements are split on ";\n" boundaries.
+async function runMigrations() {
+    await pool.query(`CREATE TABLE IF NOT EXISTS schema_migrations (
+        version VARCHAR(50) PRIMARY KEY,
+        appliedAt DATETIME NOT NULL
+    )`);
+
+    const dir = path.join(__dirname, '..', 'migrations');
+    if (!fs.existsSync(dir)) {
+        console.log("No migrations directory — skipping.");
+        return;
+    }
+    const files = fs.readdirSync(dir).filter(f => f.endsWith('.sql')).sort();
+    for (const file of files) {
+        const version = file.replace(/\.sql$/, '');
+        const [applied] = await pool.query(
+            'SELECT version FROM schema_migrations WHERE version = ?', [version]);
+        if (applied.length > 0) continue;
+        console.log(`Applying migration ${file}...`);
+        const sql = fs.readFileSync(path.join(dir, file), 'utf8');
+        // Strip full-line SQL comments, then split into statements.
+        const cleaned = sql.split('\n').filter(l => !l.trim().startsWith('--')).join('\n');
+        const statements = cleaned.split(/;\s*\n/).map(s => s.trim()).filter(Boolean);
+        const conn = await pool.getConnection();
+        try {
+            await conn.beginTransaction();
+            for (const stmt of statements) await conn.query(stmt);
+            await conn.query('INSERT INTO schema_migrations (version, appliedAt) VALUES (?, NOW())', [version]);
+            await conn.commit();
+            console.log(`Migration ${file} applied.`);
+        } catch (err) {
+            await conn.rollback();
+            throw err;
+        } finally {
+            conn.release();
+        }
+    }
+
+    // Indexes (MySQL lacks CREATE INDEX IF NOT EXISTS — check first).
+    const indexes = [
+        ['users', 'idx_users_email', 'email'],
+        ['applications', 'idx_apps_applicant', 'applicantId'],
+        ['applications', 'idx_apps_status', 'status'],
+        ['documents', 'idx_docs_app', 'applicationId'],
+        ['statusHistory', 'idx_sh_app', 'applicationId'],
+        ['notifications', 'idx_notif_user', 'userId'],
+        ['auditLogs', 'idx_audit_user', 'userId'],
+        ['remarks', 'idx_remarks_app', 'applicationId'],
+    ];
+    for (const [table, name, column] of indexes) await ensureIndex(table, name, column);
+}
+
+async function ensureIndex(table, name, column) {
+    const [rows] = await pool.query(
+        `SELECT COUNT(*) AS n FROM INFORMATION_SCHEMA.STATISTICS
+         WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND INDEX_NAME = ?`,
+        [table, name]);
+    if (rows[0].n === 0) {
+        await pool.query(`CREATE INDEX \`${name}\` ON \`${table}\` (\`${column}\`)`);
+        console.log(`Index ${name} created.`);
+    }
+}
+
+// DEMO SEED ONLY: pre-Phase-2 seed accounts carry ORPHAN_DEMO_HASH, which
+// matches no password (old client bypassed comparison). Reset those seed rows
+// to bcrypt('password') so the documented demo logins keep working after the
+// backdoor is removed. Touches ONLY rows still carrying the orphan constant —
+// never real user passwords. Admins must change/reset demo credentials.
+async function upgradeDemoPasswords() {
+    const [rows] = await pool.query(
+        'SELECT id, email FROM users WHERE passwordHash = ?', [ORPHAN_DEMO_HASH]);
+    if (rows.length === 0) return;
+    const fresh = bcrypt.hashSync('password', BCRYPT_COST);
+    for (const r of rows) {
+        await pool.query('UPDATE users SET passwordHash = ? WHERE id = ?', [fresh, r.id]);
+        console.log(`Demo seed password reset (bcrypt) for ${r.email}. Change after setup.`);
+    }
+}
+
+function isBcryptHash(stored) {
+    return typeof stored === 'string' && /^\$2[aby]\$\d\d\$/.test(stored);
+}
+
+function legacyHash(plain) {
+    return crypto.createHash('sha256').update(String(plain) + LEGACY_SALT).digest('hex');
+}
+
+// Returns { ok, upgraded } — upgraded=true when a legacy hash was migrated.
+async function verifyAndMaybeUpgrade(userId, plain, stored) {
+    if (isBcryptHash(stored)) {
+        return { ok: bcrypt.compareSync(String(plain), stored), upgraded: false };
+    }
+    const a = Buffer.from(legacyHash(plain));
+    const b = Buffer.from(String(stored || ''));
+    const ok = a.length === b.length && crypto.timingSafeEqual(a, b);
+    if (ok) {
+        const fresh = bcrypt.hashSync(String(plain), BCRYPT_COST);
+        await pool.query('UPDATE users SET passwordHash = ? WHERE id = ?', [fresh, userId]);
+        return { ok: true, upgraded: true };
+    }
+    return { ok: false, upgraded: false };
+}
+
+function hashPassword(plain) {
+    return bcrypt.hashSync(String(plain), BCRYPT_COST);
+}
+
+/* ── Server-side sessions ─────────────────────────────────────────── */
+const SESSION_TTL_MS = 8 * 60 * 60 * 1000; // 8 hours, matches previous client TTL
+
+function sqlDatetime(ms) {
+    return new Date(ms).toISOString().slice(0, 19).replace('T', ' ');
+}
+
+async function createSession(userId, ip) {
+    const id = crypto.randomBytes(32).toString('hex');
+    const csrfToken = crypto.randomBytes(32).toString('hex');
+    // Clock consistency: MySQL computes both timestamps from its own NOW(),
+    // so expiry comparison is immune to app/db timezone skew.
+    await pool.query(
+        `INSERT INTO sessions (id, userId, csrfToken, createdAt, expiresAt, ip)
+         VALUES (?, ?, ?, NOW(), DATE_ADD(NOW(), INTERVAL 8 HOUR), ?)`,
+        [id, userId, csrfToken, ip || null]);
+    // Opportunistic cleanup of rows MySQL itself considers expired.
+    pool.query('DELETE FROM sessions WHERE expiresAt < NOW()').catch(() => {});
+    return { id, csrfToken, expiresAt: new Date(Date.now() + SESSION_TTL_MS).toISOString() };
+}
+
+async function getSessionById(id) {
+    if (!id || typeof id !== 'string' || !/^[a-f0-9]{64}$/.test(id)) return null;
+    // Expiry evaluated by MySQL against the same clock that wrote the row.
+    const [rows] = await pool.query(
+        'SELECT * FROM sessions WHERE id = ? AND expiresAt > NOW()', [id]);
+    if (rows.length === 0) {
+        await pool.query('DELETE FROM sessions WHERE id = ?', [id]).catch(() => {});
+        return null;
+    }
+    return rows[0];
+}
+
+async function deleteSession(id) {
+    await pool.query('DELETE FROM sessions WHERE id = ?', [id]);
+}
+
+async function deleteUserSessions(userId) {
+    await pool.query('DELETE FROM sessions WHERE userId = ?', [userId]);
+}
+
 // Generic CRUD Operations
 async function runQuery(sql, params = []) {
     const [rows] = await pool.query(sql, params);
@@ -442,5 +610,14 @@ module.exports = {
     initDb,
     getPool: () => pool,
     runQuery,
-    runAction
+    runAction,
+    // Phase 2 auth foundation
+    hashPassword,
+    verifyAndMaybeUpgrade,
+    isBcryptHash,
+    createSession,
+    getSessionById,
+    deleteSession,
+    deleteUserSessions,
+    SESSION_TTL_MS,
 };
