@@ -3,7 +3,7 @@ import { Building2, Eye, EyeOff } from 'lucide-react';
 import { DEMO_USERS, ROLES } from '../data/mock.js';
 import { Btn, inputCls } from '../components/ui.jsx';
 
-export default function SignIn({ role, onBack, onLogin }) {
+export default function SignIn({ role, onBack, onLogin, onSignUp }) {
   const [email, setEmail] = useState(DEMO_USERS[role]?.email ?? '');
   const [password, setPassword] = useState('password');
   const [remember, setRemember] = useState(true);
@@ -61,6 +61,18 @@ export default function SignIn({ role, onBack, onLogin }) {
             </label>
             {error && <div className="text-xs bg-rose-50 text-rose-700 border border-rose-200 rounded-lg px-3 py-2">{error}</div>}
             <Btn type="submit" className="w-full">Sign In Securely</Btn>
+            {role === 'applicant' && onSignUp && (
+              <div className="text-center text-xs text-slate-600 pt-1">
+                Don't have an account?{' '}
+                <button
+                  type="button"
+                  onClick={onSignUp}
+                  className="font-semibold text-[#0D9488] hover:underline cursor-pointer"
+                >
+                  Sign Up – Applicant
+                </button>
+              </div>
+            )}
             <button type="button" onClick={onBack} className="w-full text-xs text-slate-500 hover:text-slate-800">
               ← Back to role selection
             </button>

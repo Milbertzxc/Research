@@ -223,7 +223,7 @@
 
         <div class="auth-tabs" id="auth-tabs">
           <div class="auth-tab active" id="tab-login-btn" onclick="switchTab('login')">Sign In</div>
-          <div class="auth-tab" id="tab-register-btn" onclick="switchTab('register')">Create Account</div>
+          <a href="register.html" class="auth-tab" id="tab-register-btn" style="text-decoration:none;color:inherit;display:flex;align-items:center;justify-content:center;">Create Account</a>
         </div>
 
         <div id="login-form">
@@ -259,6 +259,9 @@
             <button type="submit" id="login-btn" class="btn btn-primary btn-full btn-lg">
               Sign In
             </button>
+            <div style="text-align:center; margin-top:14px; font-size:var(--text-sm); color:var(--text-secondary);">
+              Don't have an account? <a href="register.html" style="color:var(--primary); font-weight:600; text-decoration:none;">Create Applicant Account</a>
+            </div>
           </form>
 
 
@@ -380,6 +383,11 @@
       }
 
 
+      if (window.location.hash === '#register' || new URLSearchParams(window.location.search).get('tab') === 'register') {
+        window.location.href = 'register.html';
+        return;
+      }
+
       document.getElementById('page-loader').remove();
 
       if (window.innerWidth <= 768) {
@@ -391,6 +399,10 @@
 
 
     function switchTab(tab) {
+      if (tab === 'register') {
+        window.location.href = 'register.html';
+        return;
+      }
       const loginForm = document.getElementById('login-form');
       const regForm = document.getElementById('register-form');
       const loginBtn = document.getElementById('tab-login-btn');
@@ -398,14 +410,9 @@
 
       if (tab === 'login') {
         loginForm.classList.remove('hidden');
-        regForm.classList.add('hidden');
+        if (regForm) regForm.classList.add('hidden');
         loginBtn.classList.add('active');
-        regBtn.classList.remove('active');
-      } else {
-        loginForm.classList.add('hidden');
-        regForm.classList.remove('hidden');
-        loginBtn.classList.remove('active');
-        regBtn.classList.add('active');
+        if (regBtn) regBtn.classList.remove('active');
       }
     }
 

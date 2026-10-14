@@ -92,7 +92,11 @@ async function initDb() {
             designation VARCHAR(255),
             applicantType VARCHAR(100),
             idType VARCHAR(100),
-            idNumber VARCHAR(100)
+            idNumber VARCHAR(100),
+            validIdFileName VARCHAR(255),
+            validIdFileType VARCHAR(50),
+            validIdFileSize INT,
+            validIdUploadedAt DATETIME
         )`);
 
         // Create Barangays table

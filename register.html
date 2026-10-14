@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description"
+    content="Register for an Applicant Account to apply for building permits and track applications online — Municipality of Buenavista Municipal Planning and Development Office (MPDO).">
+  <title>Create Applicant Account | Municipality of Buenavista — MPDO</title>
+
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- App CSS & Dedicated Government Registration CSS -->
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/animations.css">
+  <link rel="stylesheet" href="css/register.css">
+</head>
+
+<body class="gov-registration-body">
+
+  <!-- Top Official Philippine Government Header Bar -->
+  <header class="gov-topbar">
+    <div class="gov-topbar-left">
+      <span class="ph-flag-dot" aria-hidden="true"></span>
+      <span>Republic of the Philippines &bull; Official Digital Portal</span>
+    </div>
+    <div class="gov-topbar-right">
+      <span>Municipal Planning &amp; Development Office &bull; Buenavista, Agusan del Norte</span>
+    </div>
+  </header>
+
+  <!-- Main Registration Center Stage -->
+  <main class="gov-registration-container">
+
+    <!-- Official Branding Header -->
+    <header class="gov-header animate-fade-up">
+      <div class="gov-header-emblem" aria-hidden="true">
+        <i data-lucide="building-2" style="width:30px;height:30px;"></i>
+      </div>
+      <div class="gov-header-hierarchy">Republic of the Philippines &bull; Province of Agusan del Norte</div>
+      <div class="gov-header-office">Municipality of Buenavista &bull; Municipal Planning and Development Office (MPDO)</div>
+      <h1 class="gov-header-title">Create Applicant Account</h1>
+      <p class="gov-header-subtitle">Register to apply for building permits, submit required plans, and track your applications online in real time.</p>
+    </header>
+
+    <!-- Registration Card -->
+    <section class="gov-card animate-fade-up" aria-label="Registration Form Card">
+      <div class="gov-card-top-accent"></div>
+      <div class="gov-card-body">
+
+        <form id="applicant-registration-form" onsubmit="handleRegistrationSubmit(event)" novalidate>
+          <div class="gov-form-grid">
+
+            <!-- ════════ LEFT COLUMN: Personal & Contact Information ════════ -->
+            <div class="gov-form-column">
+              <div class="gov-column-header">
+                <span class="gov-column-badge">1</span>
+                <span class="gov-column-title">Applicant Profile &amp; Contact</span>
+              </div>
+
+              <!-- 1. Full Name -->
+              <div class="gov-form-group">
+                <label for="reg-name" class="gov-label">
+                  <span>Full Name <span class="gov-required" aria-hidden="true">*</span></span>
+                  <span id="name-status-label" class="gov-field-hint">As in government ID</span>
+                </label>
+                <div class="gov-input-wrapper">
+                  <span class="gov-input-icon" aria-hidden="true">
+                    <i data-lucide="user" style="width:18px;height:18px;"></i>
+                  </span>
+                  <input type="text" id="reg-name" class="gov-input" placeholder="e.g., Juan C. dela Cruz"
+                    required autocomplete="name" maxlength="150" aria-describedby="reg-name-error">
+                  <span id="name-feedback" class="gov-feedback-icon" aria-hidden="true">
+                    <i data-lucide="check-circle" style="width:16px;height:16px;"></i>
+                  </span>
+                </div>
+                <div id="reg-name-error" class="gov-field-error" role="alert">
+                  <i data-lucide="alert-circle" style="width:14px;height:14px;"></i>
+                  <span>Please enter your full legal name (minimum 3 characters).</span>
+                </div>
+              </div>
+
+              <!-- 2. Email Address -->
+              <div class="gov-form-group">
+                <label for="reg-email" class="gov-label">
+                  <span>Email Address <span class="gov-required" aria-hidden="true">*</span></span>
+                  <span id="email-availability-hint" class="gov-field-hint">Used for sign in &amp; alerts</span>
+                </label>
+                <div class="gov-input-wrapper">
+                  <span class="gov-input-icon" aria-hidden="true">
+                    <i data-lucide="mail" style="width:18px;height:18px;"></i>
+                  </span>
+                  <input type="email" id="reg-email" class="gov-input" placeholder="juan.delacruz@example.com"
+                    required autocomplete="email" aria-describedby="reg-email-error">
+                  <span id="email-feedback" class="gov-feedback-icon" aria-hidden="true">
+                    <i data-lucide="check-circle" style="width:16px;height:16px;"></i>
+                  </span>
+                </div>
+                <div id="reg-email-error" class="gov-field-error" role="alert">
+                  <i data-lucide="alert-circle" style="width:14px;height:14px;"></i>
+                  <span id="email-error-text">Please enter a valid email address.</span>
+                </div>
+              </div>
+
+              <!-- 3. Contact Number -->
+              <div class="gov-form-group">
+                <label for="reg-phone" class="gov-label">
+                  <span>Contact Number <span class="gov-required" aria-hidden="true">*</span></span>
+                  <span class="gov-field-hint">Philippine mobile (09XX or +639)</span>
+                </label>
+                <div class="gov-input-wrapper">
+                  <span class="gov-input-icon" aria-hidden="true">
+                    <i data-lucide="phone" style="width:18px;height:18px;"></i>
+                  </span>
+                  <input type="tel" id="reg-phone" class="gov-input" placeholder="0917 123 4567"
+                    required autocomplete="tel" maxlength="16" aria-describedby="reg-phone-error">
+                  <span id="phone-feedback" class="gov-feedback-icon" aria-hidden="true">
+                    <i data-lucide="check-circle" style="width:16px;height:16px;"></i>
+                  </span>
+                </div>
+                <div id="reg-phone-error" class="gov-field-error" role="alert">
+                  <i data-lucide="alert-circle" style="width:14px;height:14px;"></i>
+                  <span>Please enter a valid 11-digit Philippine mobile number (e.g., 09171234567).</span>
+                </div>
+              </div>
+
+              <!-- Applicant Type -->
+              <div class="gov-form-group">
+                <label for="reg-type" class="gov-label">
+                  <span>Applicant Classification</span>
+                  <span class="gov-field-hint">Permit category</span>
+                </label>
+                <div class="gov-input-wrapper">
+                  <span class="gov-input-icon" aria-hidden="true">
+                    <i data-lucide="briefcase" style="width:18px;height:18px;"></i>
+                  </span>
+                  <select id="reg-type" class="gov-input">
+                    <option value="Individual">Individual (Owner / Private Citizen)</option>
+                    <option value="Corporation">Corporation / Commercial Enterprise</option>
+                    <option value="Partnership">Partnership</option>
+                    <option value="Cooperative">Cooperative</option>
+                    <option value="Government Agency">Government Agency / LGU Partner</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- 4. Complete Address -->
+              <div class="gov-form-group">
+                <label for="reg-address" class="gov-label">
+                  <span>Complete Address <span class="gov-required" aria-hidden="true">*</span></span>
+                  <span class="gov-field-hint">Barangay, Municipality, Province</span>
+                </label>
+                <div class="gov-input-wrapper">
+                  <span class="gov-input-icon" aria-hidden="true">
+                    <i data-lucide="map-pin" style="width:18px;height:18px;"></i>
+                  </span>
+                  <input type="text" id="reg-address" class="gov-input"
+                    placeholder="House/Lot No., Street, Barangay, Buenavista, Agusan del Norte"
+                    required autocomplete="street-address" aria-describedby="reg-address-error">
+                  <span id="address-feedback" class="gov-feedback-icon" aria-hidden="true">
+                    <i data-lucide="check-circle" style="width:16px;height:16px;"></i>
+                  </span>
+                </div>
+                <div id="reg-address-error" class="gov-field-error" role="alert">
+                  <i data-lucide="alert-circle" style="width:14px;height:14px;"></i>
+                  <span>Please provide your complete residential or business address (min. 5 characters).</span>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- ════════ RIGHT COLUMN: Security & Identification ════════ -->
+            <div class="gov-form-column">
+              <div class="gov-column-header">
+                <span class="gov-column-badge">2</span>
+                <span class="gov-column-title">Account Security &amp; Valid ID</span>
+              </div>
+
+              <!-- 1. Password -->
+              <div class="gov-form-group">
+                <label for="reg-password" class="gov-label">
+                  <span>Password <span class="gov-required" aria-hidden="true">*</span></span>
+                  <span id="pwd-strength-text" class="gov-field-hint">Min. 8 characters</span>
+                </label>
+                <div class="gov-input-wrapper">
+                  <span class="gov-input-icon" aria-hidden="true">
+                    <i data-lucide="lock" style="width:18px;height:18px;"></i>
+                  </span>
+                  <input type="password" id="reg-password" class="gov-input gov-pwd-input"
+                    placeholder="Create a strong password" required autocomplete="new-password"
+                    aria-describedby="reg-pwd-error">
+                  <button type="button" class="gov-pwd-toggle" onclick="togglePasswordVisibility('reg-password', this)"
+                    aria-label="Toggle password visibility">
+                    <i data-lucide="eye" style="width:16px;height:16px;"></i>
+                  </button>
+                </div>
+                <div id="reg-pwd-error" class="gov-field-error" role="alert">
+                  <i data-lucide="alert-circle" style="width:14px;height:14px;"></i>
+                  <span>Password must meet the security requirements below.</span>
+                </div>
+
+                <!-- Password Strength Meter -->
+                <div class="gov-strength-container" aria-live="polite">
+                  <div class="gov-strength-bars">
+                    <div id="pwd-bar-1" class="gov-strength-bar"></div>
+                    <div id="pwd-bar-2" class="gov-strength-bar"></div>
+                    <div id="pwd-bar-3" class="gov-strength-bar"></div>
+                    <div id="pwd-bar-4" class="gov-strength-bar"></div>
+                  </div>
+                  <div class="gov-strength-label">
+                    <span>Strength: <strong id="pwd-strength-desc">None</strong></span>
+                    <span id="pwd-strength-score">0 / 4 requirements</span>
+                  </div>
+                </div>
+
+                <!-- Requirements Checklist -->
+                <div class="gov-requirements-checklist">
+                  <div id="req-len" class="gov-req-item">
+                    <i data-lucide="circle" class="gov-req-icon" style="width:12px;height:12px;"></i>
+                    <span>At least 8 characters</span>
+                  </div>
+                  <div id="req-upper" class="gov-req-item">
+                    <i data-lucide="circle" class="gov-req-icon" style="width:12px;height:12px;"></i>
+                    <span>Uppercase letter (A-Z)</span>
+                  </div>
+                  <div id="req-num" class="gov-req-item">
+                    <i data-lucide="circle" class="gov-req-icon" style="width:12px;height:12px;"></i>
+                    <span>At least one number (0-9)</span>
+                  </div>
+                  <div id="req-special" class="gov-req-item">
+                    <i data-lucide="circle" class="gov-req-icon" style="width:12px;height:12px;"></i>
+                    <span>Special character (!@#$%^&*)</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 2. Confirm Password -->
+              <div class="gov-form-group">
+                <label for="reg-confirm" class="gov-label">
+                  <span>Confirm Password <span class="gov-required" aria-hidden="true">*</span></span>
+                  <span id="match-indicator-text" class="gov-field-hint">Must match password</span>
+                </label>
+                <div class="gov-input-wrapper">
+                  <span class="gov-input-icon" aria-hidden="true">
+                    <i data-lucide="shield-check" style="width:18px;height:18px;"></i>
+                  </span>
+                  <input type="password" id="reg-confirm" class="gov-input gov-pwd-input"
+                    placeholder="Re-enter your password" required autocomplete="new-password"
+                    aria-describedby="reg-confirm-error">
+                  <button type="button" class="gov-pwd-toggle" onclick="togglePasswordVisibility('reg-confirm', this)"
+                    aria-label="Toggle confirm password visibility">
+                    <i data-lucide="eye" style="width:16px;height:16px;"></i>
+                  </button>
+                </div>
+                <div id="reg-confirm-error" class="gov-field-error" role="alert">
+                  <i data-lucide="alert-circle" style="width:14px;height:14px;"></i>
+                  <span>Passwords do not match. Please verify both entries.</span>
+                </div>
+              </div>
+
+              <!-- 3. Upload Valid ID -->
+              <div class="gov-form-group">
+                <label class="gov-label">
+                  <span>Upload Valid ID <span class="gov-required" aria-hidden="true">*</span></span>
+                  <span class="gov-field-hint">Government-issued ID</span>
+                </label>
+
+                <!-- ID Type Selector -->
+                <div class="gov-input-wrapper mb-2">
+                  <span class="gov-input-icon" aria-hidden="true">
+                    <i data-lucide="credit-card" style="width:18px;height:18px;"></i>
+                  </span>
+                  <select id="reg-idtype" class="gov-input" aria-label="Select Valid ID Type">
+                    <option value="PhilSys National ID">PhilSys National ID</option>
+                    <option value="Driver's License">Driver's License (LTO)</option>
+                    <option value="Philippine Passport">Philippine Passport (DFA)</option>
+                    <option value="UMID / SSS ID">UMID / SSS / GSIS ID</option>
+                    <option value="PRC ID">PRC Professional ID</option>
+                    <option value="Voter's ID">Voter's ID / Comelec Certification</option>
+                    <option value="Postal ID">Postal ID (PhilPost)</option>
+                    <option value="Barangay Clearance with Photo">Barangay Clearance / Residency with Photo</option>
+                  </select>
+                </div>
+
+                <!-- Drag-and-Drop Dropzone -->
+                <div id="id-drop-zone" class="gov-upload-card" onclick="document.getElementById('id-file-input').click()"
+                  tabindex="0" role="button" aria-label="Click or drag and drop to upload valid government ID">
+                  <input type="file" id="id-file-input" style="display:none" accept=".pdf,.jpg,.jpeg,.png">
+                  <div class="gov-upload-icon-wrapper" aria-hidden="true">
+                    <i data-lucide="upload-cloud" style="width:24px;height:24px;"></i>
+                  </div>
+                  <div class="gov-upload-primary-text">
+                    Drag &amp; drop your ID here, or <span>Browse files</span>
+                  </div>
+                  <div class="gov-upload-subtext">
+                    Accepted formats: PDF, JPG, JPEG, PNG (Max file size: 10 MB)
+                  </div>
+                </div>
+
+                <!-- Selected File Display -->
+                <div id="id-file-preview-card" class="gov-file-preview-item" style="display:none">
+                  <div class="gov-file-preview-icon" aria-hidden="true">
+                    <i id="preview-icon-type" data-lucide="file-text" style="width:20px;height:20px;"></i>
+                  </div>
+                  <div class="gov-file-preview-details">
+                    <div id="preview-file-name" class="gov-file-preview-name">valid_id.pdf</div>
+                    <div class="gov-file-preview-meta">
+                      <span id="preview-file-size">1.2 MB</span>
+                      <span>&bull;</span>
+                      <span class="gov-file-badge-verified">
+                        <i data-lucide="check" style="width:10px;height:10px;"></i> Ready for upload
+                      </span>
+                    </div>
+                  </div>
+                  <button type="button" class="gov-file-remove-btn" onclick="removeSelectedFile(event)"
+                    title="Remove file" aria-label="Remove uploaded file">
+                    <i data-lucide="x" style="width:16px;height:16px;"></i>
+                  </button>
+                </div>
+
+                <div id="reg-id-error" class="gov-field-error" role="alert">
+                  <i data-lucide="alert-circle" style="width:14px;height:14px;"></i>
+                  <span id="reg-id-error-text">Please upload a valid government-issued ID (PDF, JPG, or PNG up to 10 MB).</span>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- ════════ Data Privacy & Legal Compliance Notice ════════ -->
+          <div class="gov-privacy-card animate-fade-up">
+            <div class="gov-privacy-icon" aria-hidden="true">
+              <i data-lucide="shield" style="width:20px;height:20px;"></i>
+            </div>
+            <div class="gov-privacy-text">
+              <strong>Data Privacy &amp; Confidentiality Notice (R.A. 10173):</strong> The Municipality of Buenavista
+              Municipal Planning and Development Office (MPDO) collects your personal data and identity documents solely
+              for identity verification, legitimate permit application processing, and official municipal record-keeping.
+              All submitted documents are encrypted and accessible exclusively to authorized MPDO personnel and building
+              officials. Identity files are never published publicly or shared with unauthorized entities.
+            </div>
+          </div>
+
+          <!-- ════════ Error Alert Banner ════════ -->
+          <div id="form-error-banner" class="gov-alert gov-alert-danger" style="display:none" role="alert">
+            <i data-lucide="alert-triangle" style="width:18px;height:18px;flex-shrink:0;"></i>
+            <span id="form-error-banner-text">Please review the form and correct the highlighted fields.</span>
+          </div>
+
+          <!-- ════════ Primary Action Button ════════ -->
+          <div class="gov-submit-wrapper">
+            <button type="submit" id="btn-create-account" class="gov-btn-primary">
+              <i data-lucide="user-plus" style="width:18px;height:18px;"></i>
+              <span>Create Applicant Account</span>
+            </button>
+          </div>
+
+          <!-- ════════ Sign In Navigation Link ════════ -->
+          <div class="gov-signin-footer">
+            Already have an account?
+            <a href="index.html" class="gov-signin-link">Sign In</a>
+          </div>
+
+        </form>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Official Footer -->
+  <footer class="gov-footer">
+    <div class="gov-footer-links">
+      <a href="index.html" class="gov-footer-link">Home / Sign In</a>
+      <span>&bull;</span>
+      <span class="gov-footer-link">Buenavista Building Permit Processing System</span>
+      <span>&bull;</span>
+      <span class="gov-footer-link">MPDO Agusan del Norte</span>
+    </div>
+    <div>&copy; 2026 Municipality of Buenavista. Republic of the Philippines. All rights reserved.</div>
+  </footer>
+
+  <!-- Success Confirmation Modal -->
+  <div id="gov-success-modal" class="gov-modal-backdrop" style="display:none" role="dialog" aria-modal="true"
+    aria-labelledby="success-modal-title">
+    <div class="gov-success-card animate-fade-up">
+      <div class="gov-success-icon-badge" aria-hidden="true">
+        <i data-lucide="check" style="width:36px;height:36px;"></i>
+      </div>
+      <h2 id="success-modal-title" class="gov-success-title">Applicant Account Created!</h2>
+      <p class="gov-success-desc">
+        Welcome to the Buenavista MPDO Building Permit Portal. Your applicant account has been registered and verified successfully.
+      </p>
+      <div class="gov-success-account-box">
+        <div class="gov-success-row">
+          <span>Applicant Name:</span>
+          <span id="success-user-name">Pedro Penduko</span>
+        </div>
+        <div class="gov-success-row">
+          <span>Registered Email:</span>
+          <span id="success-user-email">pedro@example.com</span>
+        </div>
+        <div class="gov-success-row">
+          <span>Account Role:</span>
+          <span style="color:var(--secondary-emerald)">Applicant (Public Portal)</span>
+        </div>
+        <div class="gov-success-row">
+          <span>Identity Verification:</span>
+          <span id="success-id-status">Uploaded &amp; Encrypted</span>
+        </div>
+      </div>
+      <div style="display:flex; align-items:center; justify-content:center; gap:8px; color:var(--text-muted); font-size:0.85rem;">
+        <div class="gov-spinner-dark" aria-hidden="true"></div>
+        <span>Signing you in and loading your dashboard…</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Core App Scripts -->
+  <script src="js/utils.js"></script>
+  <script src="js/db.js"></script>
+  <script src="js/audit.js"></script>
+  <script src="js/notifications.js"></script>
+  <script src="js/auth.js"></script>
+
+  <!-- Dedicated Registration Logic -->
+  <script>
+    /* ── State ───────────────────────────────────────────────────────── */
+    let selectedFileObject = null;
+    let selectedFileBase64 = null;
+    let emailDebounceTimer = null;
+    let isSubmitting = false;
+
+    /* ── Init Page ───────────────────────────────────────────────────── */
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Check if user is already logged in
+      try {
+        if (typeof Auth !== 'undefined' && Auth.isAuthenticated()) {
+          window.location.href = 'dashboard.html';
+          return;
+        }
+      } catch (err) {}
+
+      // Initialize icons
+      if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+      }
+
+      setupEventListeners();
+    });
+
+    /* ── Setup Event Listeners ───────────────────────────────────────── */
+    function setupEventListeners() {
+      // Input validation events
+      document.getElementById('reg-name').addEventListener('input', validateNameField);
+      document.getElementById('reg-email').addEventListener('input', onEmailInput);
+      document.getElementById('reg-phone').addEventListener('input', onPhoneInput);
+      document.getElementById('reg-address').addEventListener('input', validateAddressField);
+      document.getElementById('reg-password').addEventListener('input', onPasswordInput);
+      document.getElementById('reg-confirm').addEventListener('input', validateConfirmPassword);
+
+      // File upload dropzone events
+      const dropZone = document.getElementById('id-drop-zone');
+      const fileInput = document.getElementById('id-file-input');
+
+      fileInput.addEventListener('change', (e) => {
+        if (e.target.files && e.target.files[0]) {
+          processSelectedFile(e.target.files[0]);
+        }
+      });
+
+      // Drag and drop handlers
+      ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          dropZone.classList.add('drag-over');
+        });
+      });
+
+      ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          dropZone.classList.remove('drag-over');
+        });
+      });
+
+      dropZone.addEventListener('drop', (e) => {
+        const dt = e.dataTransfer;
+        if (dt && dt.files && dt.files[0]) {
+          processSelectedFile(dt.files[0]);
+        }
+      });
+
+      // Dropzone keyboard accessibility (Enter / Space to open file dialog)
+      dropZone.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          fileInput.click();
+        }
+      });
+    }
+
+    /* ── Field 1: Name Validation ────────────────────────────────────── */
+    function validateNameField() {
+      const input = document.getElementById('reg-name');
+      const errorEl = document.getElementById('reg-name-error');
+      const feedback = document.getElementById('name-feedback');
+      const val = input.value.trim();
+
+      if (val.length >= 3) {
+        input.classList.remove('is-invalid');
+        input.classList.add('is-valid');
+        errorEl.classList.remove('visible');
+        feedback.className = 'gov-feedback-icon valid';
+        return true;
+      } else if (val.length > 0) {
+        input.classList.add('is-invalid');
+        input.classList.remove('is-valid');
+        errorEl.classList.add('visible');
+        feedback.className = 'gov-feedback-icon invalid';
+        return false;
+      } else {
+        input.classList.remove('is-invalid', 'is-valid');
+        errorEl.classList.remove('visible');
+        feedback.className = 'gov-feedback-icon';
+        return false;
+      }
+    }
+
+    /* ── Field 2: Email Validation & Duplicate Check ─────────────────── */
+    function onEmailInput() {
+      const input = document.getElementById('reg-email');
+      const errorEl = document.getElementById('reg-email-error');
+      const errorText = document.getElementById('email-error-text');
+      const feedback = document.getElementById('email-feedback');
+      const hint = document.getElementById('email-availability-hint');
+      const email = input.value.trim();
+
+      clearTimeout(emailDebounceTimer);
+
+      if (!email) {
+        input.classList.remove('is-invalid', 'is-valid');
+        errorEl.classList.remove('visible');
+        feedback.className = 'gov-feedback-icon';
+        hint.textContent = 'Used for sign in & alerts';
+        hint.style.color = 'var(--text-muted)';
+        return;
+      }
+
+      if (!Utils.validateEmail(email)) {
+        input.classList.add('is-invalid');
+        input.classList.remove('is-valid');
+        errorText.textContent = 'Please enter a valid email address (e.g., name@domain.com).';
+        errorEl.classList.add('visible');
+        feedback.className = 'gov-feedback-icon invalid';
+        hint.textContent = 'Invalid format';
+        hint.style.color = 'var(--color-error)';
+        return;
+      }
+
+      // Valid format: show checking state and debounce duplicate backend query
+      hint.textContent = 'Checking availability…';
+      hint.style.color = 'var(--text-muted)';
+      feedback.className = 'gov-feedback-icon checking';
+      feedback.innerHTML = '<div class="gov-spinner-dark" style="width:14px;height:14px;"></div>';
+
+      emailDebounceTimer = setTimeout(async () => {
+        try {
+          const res = await Auth.checkEmailAvailable(email);
+          if (res.available) {
+            input.classList.remove('is-invalid');
+            input.classList.add('is-valid');
+            errorEl.classList.remove('visible');
+            feedback.className = 'gov-feedback-icon valid';
+            feedback.innerHTML = '<i data-lucide="check-circle" style="width:16px;height:16px;"></i>';
+            hint.textContent = '✓ Email is available';
+            hint.style.color = 'var(--color-success)';
+          } else {
+            input.classList.add('is-invalid');
+            input.classList.remove('is-valid');
+            errorText.textContent = res.message || 'An account with this email is already registered.';
+            errorEl.classList.add('visible');
+            feedback.className = 'gov-feedback-icon invalid';
+            feedback.innerHTML = '<i data-lucide="x-circle" style="width:16px;height:16px;"></i>';
+            hint.textContent = 'Already registered';
+            hint.style.color = 'var(--color-error)';
+          }
+          if (typeof lucide !== 'undefined') lucide.createIcons();
+        } catch {
+          // Fallback if check failed
+          feedback.className = 'gov-feedback-icon valid';
+          feedback.innerHTML = '<i data-lucide="check" style="width:16px;height:16px;"></i>';
+          hint.textContent = 'Format valid';
+          if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+      }, 400);
+    }
+
+    /* ── Field 3: Philippine Phone Formatting & Normalization ────────── */
+    function onPhoneInput(e) {
+      const input = document.getElementById('reg-phone');
+      const errorEl = document.getElementById('reg-phone-error');
+      const feedback = document.getElementById('phone-feedback');
+
+      let val = input.value.replace(/[^\d+]/g, '');
+
+      // Normalize format for display
+      if (val.startsWith('+63')) {
+        // e.g. +63 9XX XXX XXXX
+        const rest = val.slice(3).replace(/\D/g, '');
+        if (rest.length <= 3) val = `+63 ${rest}`;
+        else if (rest.length <= 6) val = `+63 ${rest.slice(0,3)} ${rest.slice(3)}`;
+        else val = `+63 ${rest.slice(0,3)} ${rest.slice(3,6)} ${rest.slice(6,10)}`;
+      } else if (val.startsWith('09')) {
+        // e.g. 0917 123 4567
+        const digits = val.replace(/\D/g, '');
+        if (digits.length <= 4) val = digits;
+        else if (digits.length <= 7) val = `${digits.slice(0,4)} ${digits.slice(4)}`;
+        else val = `${digits.slice(0,4)} ${digits.slice(4,7)} ${digits.slice(7,11)}`;
+      }
+
+      input.value = val;
+
+      const cleanPhone = val.replace(/\s/g, '');
+      const isValid = /^(09|\+639)\d{9}$/.test(cleanPhone);
+
+      if (isValid) {
+        input.classList.remove('is-invalid');
+        input.classList.add('is-valid');
+        errorEl.classList.remove('visible');
+        feedback.className = 'gov-feedback-icon valid';
+        return true;
+      } else if (cleanPhone.length >= 4) {
+        input.classList.add('is-invalid');
+        input.classList.remove('is-valid');
+        errorEl.classList.add('visible');
+        feedback.className = 'gov-feedback-icon invalid';
+        return false;
+      } else {
+        input.classList.remove('is-invalid', 'is-valid');
+        errorEl.classList.remove('visible');
+        feedback.className = 'gov-feedback-icon';
+        return false;
+      }
+    }
+
+    /* ── Field 4: Address Validation ─────────────────────────────────── */
+    function validateAddressField() {
+      const input = document.getElementById('reg-address');
+      const errorEl = document.getElementById('reg-address-error');
+      const feedback = document.getElementById('address-feedback');
+      const val = input.value.trim();
+
+      if (val.length >= 5) {
+        input.classList.remove('is-invalid');
+        input.classList.add('is-valid');
+        errorEl.classList.remove('visible');
+        feedback.className = 'gov-feedback-icon valid';
+        return true;
+      } else if (val.length > 0) {
+        input.classList.add('is-invalid');
+        input.classList.remove('is-valid');
+        errorEl.classList.add('visible');
+        feedback.className = 'gov-feedback-icon invalid';
+        return false;
+      } else {
+        input.classList.remove('is-invalid', 'is-valid');
+        errorEl.classList.remove('visible');
+        feedback.className = 'gov-feedback-icon';
+        return false;
+      }
+    }
+
+    /* ── Field 5: Password Strength & Requirements ───────────────────── */
+    function onPasswordInput() {
+      const pwd = document.getElementById('reg-password').value;
+      const errorEl = document.getElementById('reg-pwd-error');
+
+      // Check each criteria
+      const hasLen = pwd.length >= 8;
+      const hasUpper = /[A-Z]/.test(pwd);
+      const hasNum = /[0-9]/.test(pwd);
+      const hasSpecial = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~`]/.test(pwd);
+
+      updateReqItem('req-len', hasLen);
+      updateReqItem('req-upper', hasUpper);
+      updateReqItem('req-num', hasNum);
+      updateReqItem('req-special', hasSpecial);
+
+      const score = (hasLen ? 1 : 0) + (hasUpper ? 1 : 0) + (hasNum ? 1 : 0) + (hasSpecial ? 1 : 0);
+
+      // Strength meter display
+      const bars = [1, 2, 3, 4].map(i => document.getElementById(`pwd-bar-${i}`));
+      const descEl = document.getElementById('pwd-strength-desc');
+      const scoreEl = document.getElementById('pwd-strength-score');
+
+      bars.forEach(b => b.className = 'gov-strength-bar');
+
+      scoreEl.textContent = `${score} / 4 requirements`;
+
+      if (pwd.length === 0) {
+        descEl.textContent = 'None';
+        descEl.style.color = 'var(--text-muted)';
+      } else if (score === 1) {
+        bars[0].classList.add('active-weak');
+        descEl.textContent = 'Weak';
+        descEl.style.color = 'var(--color-error)';
+      } else if (score === 2) {
+        bars[0].classList.add('active-fair');
+        bars[1].classList.add('active-fair');
+        descEl.textContent = 'Fair';
+        descEl.style.color = 'var(--color-warning)';
+      } else if (score === 3) {
+        bars[0].classList.add('active-good');
+        bars[1].classList.add('active-good');
+        bars[2].classList.add('active-good');
+        descEl.textContent = 'Good';
+        descEl.style.color = '#2563EB';
+      } else if (score === 4) {
+        bars.forEach(b => b.classList.add('active-strong'));
+        descEl.textContent = 'Strong (Excellent)';
+        descEl.style.color = 'var(--secondary-emerald)';
+      }
+
+      if (hasLen) {
+        document.getElementById('reg-password').classList.remove('is-invalid');
+        errorEl.classList.remove('visible');
+      }
+
+      validateConfirmPassword();
+    }
+
+    function updateReqItem(id, met) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      if (met) {
+        el.classList.add('met');
+        el.querySelector('.gov-req-icon').innerHTML = '<path d="M20 6 9 17l-5-5"/>';
+      } else {
+        el.classList.remove('met');
+        el.querySelector('.gov-req-icon').innerHTML = '<circle cx="12" cy="12" r="10"/>';
+      }
+    }
+
+    /* ── Field 6: Confirm Password Match ─────────────────────────────── */
+    function validateConfirmPassword() {
+      const pwd = document.getElementById('reg-password').value;
+      const confirmInput = document.getElementById('reg-confirm');
+      const confirmVal = confirmInput.value;
+      const errorEl = document.getElementById('reg-confirm-error');
+      const indicator = document.getElementById('match-indicator-text');
+
+      if (!confirmVal) {
+        confirmInput.classList.remove('is-invalid', 'is-valid');
+        errorEl.classList.remove('visible');
+        indicator.textContent = 'Must match password';
+        indicator.style.color = 'var(--text-muted)';
+        return false;
+      }
+
+      if (pwd === confirmVal) {
+        confirmInput.classList.remove('is-invalid');
+        confirmInput.classList.add('is-valid');
+        errorEl.classList.remove('visible');
+        indicator.textContent = '✓ Passwords match';
+        indicator.style.color = 'var(--color-success)';
+        return true;
+      } else {
+        confirmInput.classList.add('is-invalid');
+        confirmInput.classList.remove('is-valid');
+        errorEl.classList.add('visible');
+        indicator.textContent = 'Passwords do not match';
+        indicator.style.color = 'var(--color-error)';
+        return false;
+      }
+    }
+
+    /* ── Password Visibility Toggle ──────────────────────────────────── */
+    function togglePasswordVisibility(inputId, button) {
+      const input = document.getElementById(inputId);
+      if (!input) return;
+      const isPwd = input.type === 'password';
+      input.type = isPwd ? 'text' : 'password';
+      button.innerHTML = isPwd
+        ? '<i data-lucide="eye-off" style="width:16px;height:16px;"></i>'
+        : '<i data-lucide="eye" style="width:16px;height:16px;"></i>';
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    /* ── Field 7: Valid ID Drag & Drop File Upload ───────────────────── */
+    function processSelectedFile(file) {
+      const errorEl = document.getElementById('reg-id-error');
+      const errorText = document.getElementById('reg-id-error-text');
+      const dropZone = document.getElementById('id-drop-zone');
+      const previewCard = document.getElementById('id-file-preview-card');
+      const nameEl = document.getElementById('preview-file-name');
+      const sizeEl = document.getElementById('preview-file-size');
+      const iconEl = document.getElementById('preview-icon-type');
+
+      if (!file) return;
+
+      const allowedExts = ['pdf', 'jpg', 'jpeg', 'png'];
+      const ext = file.name.split('.').pop().toLowerCase();
+      const maxBytes = 10 * 1024 * 1024; // 10MB
+
+      if (!allowedExts.includes(ext)) {
+        dropZone.classList.add('is-invalid');
+        errorText.textContent = `Invalid file type ".${ext}". Please upload a PDF, JPG, or PNG file.`;
+        errorEl.classList.add('visible');
+        return;
+      }
+
+      if (file.size > maxBytes) {
+        dropZone.classList.add('is-invalid');
+        errorText.textContent = `File size (${Utils.formatFileSize(file.size)}) exceeds the 10 MB limit.`;
+        errorEl.classList.add('visible');
+        return;
+      }
+
+      if (file.size === 0) {
+        dropZone.classList.add('is-invalid');
+        errorText.textContent = 'Selected file appears to be empty (0 bytes).';
+        errorEl.classList.add('visible');
+        return;
+      }
+
+      // Valid file selected
+      dropZone.classList.remove('is-invalid');
+      errorEl.classList.remove('visible');
+
+      selectedFileObject = file;
+      nameEl.textContent = file.name;
+      sizeEl.textContent = Utils.formatFileSize(file.size);
+
+      // Icon update
+      iconEl.setAttribute('data-lucide', ext === 'pdf' ? 'file-text' : 'image');
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+
+      // Read file into Base64 for secure payload transmission
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        selectedFileBase64 = e.target.result;
+      };
+      reader.readAsDataURL(file);
+
+      dropZone.style.display = 'none';
+      previewCard.style.display = 'flex';
+    }
+
+    function removeSelectedFile(e) {
+      if (e) { e.preventDefault(); e.stopPropagation(); }
+      selectedFileObject = null;
+      selectedFileBase64 = null;
+      document.getElementById('id-file-input').value = '';
+
+      document.getElementById('id-drop-zone').style.display = 'block';
+      document.getElementById('id-file-preview-card').style.display = 'none';
+      document.getElementById('id-drop-zone').classList.remove('is-invalid');
+      document.getElementById('reg-id-error').classList.remove('visible');
+    }
+
+    /* ── Form Submission Handler ─────────────────────────────────────── */
+    async function handleRegistrationSubmit(e) {
+      e.preventDefault();
+      if (isSubmitting) return;
+
+      const errorBanner = document.getElementById('form-error-banner');
+      const errorBannerText = document.getElementById('form-error-banner-text');
+      errorBanner.style.display = 'none';
+
+      // Validate all required fields
+      const isNameValid = validateNameField();
+      const email = document.getElementById('reg-email').value.trim();
+      const isEmailValid = Utils.validateEmail(email);
+      const isPhoneValid = onPhoneInput({ target: document.getElementById('reg-phone') });
+      const isAddressValid = validateAddressField();
+      const pwd = document.getElementById('reg-password').value;
+      const isPwdValid = pwd.length >= 8;
+      const isConfirmValid = validateConfirmPassword();
+
+      // Validate ID file upload
+      const idErrorEl = document.getElementById('reg-id-error');
+      const idErrorText = document.getElementById('reg-id-error-text');
+      const isIdValid = !!selectedFileObject;
+
+      if (!isIdValid) {
+        document.getElementById('id-drop-zone').classList.add('is-invalid');
+        idErrorText.textContent = 'Please upload a copy of your valid government ID.';
+        idErrorEl.classList.add('visible');
+      }
+
+      if (!isNameValid || !isEmailValid || !isPhoneValid || !isAddressValid || !isPwdValid || !isConfirmValid || !isIdValid) {
+        errorBannerText.textContent = 'Please correct the highlighted fields before creating your account.';
+        errorBanner.style.display = 'flex';
+        // Scroll to first invalid field
+        const firstInvalid = document.querySelector('.gov-input.is-invalid, .gov-upload-card.is-invalid');
+        if (firstInvalid) firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
+
+      // Prepare payload
+      const payload = {
+        fullName: document.getElementById('reg-name').value.trim(),
+        email: email.toLowerCase(),
+        phone: document.getElementById('reg-phone').value.trim(),
+        address: document.getElementById('reg-address').value.trim(),
+        applicantType: document.getElementById('reg-type').value,
+        idType: document.getElementById('reg-idtype').value,
+        password: pwd,
+        confirmPassword: document.getElementById('reg-confirm').value,
+        idFile: selectedFileBase64 ? {
+          name: selectedFileObject.name,
+          type: selectedFileObject.type,
+          size: selectedFileObject.size,
+          data: selectedFileBase64
+        } : null
+      };
+
+      // Set Loading UI state
+      isSubmitting = true;
+      const submitBtn = document.getElementById('btn-create-account');
+      const originalBtnHTML = submitBtn.innerHTML;
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<div class="gov-spinner" aria-hidden="true"></div><span>Creating Applicant Account…</span>';
+
+      try {
+        const result = await Auth.register(payload);
+
+        if (!result.ok) {
+          isSubmitting = false;
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = originalBtnHTML;
+          if (typeof lucide !== 'undefined') lucide.createIcons();
+
+          errorBannerText.textContent = result.error || 'Registration failed. Please check your details and try again.';
+          errorBanner.style.display = 'flex';
+          errorBanner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          return;
+        }
+
+        // Registration Success!
+        submitBtn.innerHTML = '<i data-lucide="check" style="width:18px;height:18px;"></i><span>Account Created!</span>';
+        submitBtn.style.backgroundColor = 'var(--secondary-emerald)';
+
+        // Show Success Modal
+        document.getElementById('success-user-name').textContent = result.user?.fullName || payload.fullName;
+        document.getElementById('success-user-email').textContent = result.user?.email || payload.email;
+        document.getElementById('success-id-status').textContent = `${payload.idType} &bull; Uploaded`;
+        
+        const modal = document.getElementById('gov-success-modal');
+        modal.style.display = 'flex';
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+
+        // Redirect to dashboard after smooth confirmation
+        setTimeout(() => {
+          window.location.href = 'dashboard.html';
+        }, 1500);
+
+      } catch (err) {
+        console.error('Registration exception:', err);
+        isSubmitting = false;
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnHTML;
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+
+        errorBannerText.textContent = 'An unexpected network error occurred. Please check your connection and try again.';
+        errorBanner.style.display = 'flex';
+      }
+    }
+  </script>
+</body>
+
+</html>

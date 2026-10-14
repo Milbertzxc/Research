@@ -1,28 +1,18 @@
-# MPDO XAMPP Server Launcher
-# Starts the Node.js Express server with XAMPP MySQL backend
+# Municipality of Buenavista — Building Permit Processing System
+# Main Application Launcher (Vite React Portal on port 5174)
 
-Write-Host "============================================" -ForegroundColor Cyan
-Write-Host "  MPDO Building Permit System (XAMPP)" -ForegroundColor Cyan
-Write-Host "  Backend: Node.js Express + XAMPP MySQL" -ForegroundColor Cyan
-Write-Host "============================================" -ForegroundColor Cyan
+Write-Host "==========================================================" -ForegroundColor Cyan
+Write-Host "  Municipality of Buenavista — Building Permit System     " -ForegroundColor Cyan
+Write-Host "  Main Application: Vite React Portal (Port 5174)         " -ForegroundColor Cyan
+Write-Host "==========================================================" -ForegroundColor Cyan
 Write-Host ""
 
-# Check node_modules
-if (-not (Test-Path "node_modules")) {
-    Write-Host "[*] Installing dependencies..." -ForegroundColor Yellow
-    npm install
+# Check node_modules in buenavista
+if (-not (Test-Path "buenavista\node_modules")) {
+    Write-Host "[*] Installing frontend dependencies in buenavista..." -ForegroundColor Yellow
+    npm.cmd install --prefix buenavista
     Write-Host ""
 }
 
-# XAMPP Instructions
-Write-Host "[XAMPP CHECKLIST]" -ForegroundColor Yellow
-Write-Host "  1. Open XAMPP Control Panel" -ForegroundColor White
-Write-Host "  2. Start 'MySQL' module (and 'Apache' if using phpMyAdmin)" -ForegroundColor White
-Write-Host "  3. phpMyAdmin Access: http://localhost/phpmyadmin" -ForegroundColor White
-Write-Host "  4. Database created automatically: 'mpdo_db'" -ForegroundColor White
-Write-Host ""
-
-# Start the server
-Write-Host "[*] Starting Express server on port 3000..." -ForegroundColor Green
-Write-Host ""
-node server.js
+Write-Host "[*] Starting Buenavista application on http://localhost:5174..." -ForegroundColor Green
+npm.cmd run dev --prefix buenavista

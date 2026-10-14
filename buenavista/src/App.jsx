@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Layout from './components/Layout.jsx';
 import RoleSelect from './pages/RoleSelect.jsx';
 import SignIn from './pages/SignIn.jsx';
+import SignUp from './pages/SignUp.jsx';
 import ApplicantDashboard from './pages/applicant/ApplicantDashboard.jsx';
 import LocationalForm from './pages/applicant/LocationalForm.jsx';
 import BuildingPermitForm from './pages/applicant/BuildingPermitForm.jsx';
@@ -47,7 +48,25 @@ export default function App() {
   const switchRole = () => { setStage('roles'); setPendingRole(null); };
 
   if (stage === 'roles') return <RoleSelect onPick={pickRole} />;
-  if (stage === 'signin') return <SignIn role={pendingRole} onBack={() => setStage('roles')} onLogin={login} />;
+  if (stage === 'signin') {
+    return (
+      <SignIn
+        role={pendingRole}
+        onBack={() => setStage('roles')}
+        onLogin={login}
+        onSignUp={() => setStage('signup')}
+      />
+    );
+  }
+  if (stage === 'signup') {
+    return (
+      <SignUp
+        onBack={() => setStage('roles')}
+        onSignIn={() => setStage('signin')}
+        onRegisterSuccess={login}
+      />
+    );
+  }
 
   return (
     <Layout user={user} page={page} setPage={setPage} onSwitchRole={switchRole} onLogout={logout} titles={TITLES}>

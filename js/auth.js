@@ -114,14 +114,14 @@ const Auth = (() => {
 
   /* ── Register (server creates APPLICANT accounts only) ───────── */
   async function register(data) {
-    const { fullName, email, phone, address, password, confirmPassword, applicantType, idType, idNumber } = data;
+    const { fullName, email, phone, address, password, confirmPassword, applicantType, idType, idNumber, idFile } = data;
 
     // Validation
     if (!fullName || fullName.trim().length < 3) return { ok: false, error: 'Full name must be at least 3 characters.' };
     if (!Utils.validateEmail(email)) return { ok: false, error: 'Please enter a valid email address.' };
     if (!Utils.validatePhone(phone))  return { ok: false, error: 'Please enter a valid Philippine mobile number (e.g., 09171234567).' };
     if (!address || address.trim().length < 5) return { ok: false, error: 'Please provide a complete address.' };
-    if (password.length < 8) return { ok: false, error: 'Password must be at least 8 characters.' };
+    if (!password || password.length < 8) return { ok: false, error: 'Password must be at least 8 characters.' };
     if (password !== confirmPassword) return { ok: false, error: 'Passwords do not match.' };
 
     let res;
@@ -131,9 +131,16 @@ const Auth = (() => {
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          fullName: fullName.trim(), email: email.toLowerCase().trim(),
-          phone: phone.trim(), address: address.trim(),
-          applicantType: applicantType || 'Individual', password, confirmPassword,
+          fullName: fullName.trim(),
+          email: email.toLowerCase().trim(),
+          phone: phone.trim(),
+          address: address.trim(),
+          applicantType: applicantType || 'Individual',
+          idType: idType || 'PhilSys National ID',
+          idNumber: idNumber ? idNumber.trim() : '',
+          password,
+          confirmPassword,
+          idFile: idFile || null
         })
       });
     } catch {
@@ -144,8 +151,18 @@ const Auth = (() => {
 
     const session = setSession(out.user, false, out.csrfToken);
     try { await DB.init(); } catch (e) { console.error(e); }
-    void idType; void idNumber; // collected for future KYC fields; not stored server-side yet
     return { ok: true, session, user: out.user };
+  }
+
+  /* ── Real-time Email Availability Check ────────────── */
+  async function checkEmailAvailable(email) {
+    if (!email || !Utils.validateEmail(email)) return { available: false, valid: false };
+    try {
+      const res = await fetch(`${API_BASE}/auth/check-email?email=${encodeURIComponent(email)}`);
+      return await res.json();
+    } catch {
+      return { available: true };
+    }
   }
 
   /* ── Logout ───────────────────────────────────────── */
@@ -203,7 +220,8 @@ const Auth = (() => {
     isAuthenticated, hasRole, getCurrentUser,
     requireAuth, requireRole,
     login, register, logout,
-    updateProfile, changePassword
+    updateProfile, changePassword,
+    checkEmailAvailable
   };
 })();
 

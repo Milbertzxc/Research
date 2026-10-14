@@ -4,6 +4,7 @@ const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
 const { rateLimit } = require('express-rate-limit');
 const path = require('path');
+const fs = require('fs');
 const db = require('./server/db');
 
 const app = express();
@@ -15,8 +16,13 @@ const isProd = process.env.NODE_ENV === 'production';
 // inline <script> blocks and CDN scripts (Leaflet/Chart.js/Lucide). Enabling
 // CSP without nonces would break the app. Tightening CSP is tracked for P7.
 app.use(helmet({ contentSecurityPolicy: false }));
-app.use(express.json({ limit: '2mb' }));
+app.use(express.json({ limit: '15mb' }));
+app.use(express.urlencoded({ limit: '15mb', extended: true }));
 app.use(cookieParser());
+
+// Block public static access to private storage directory
+app.use('/storage', (req, res) => res.status(403).json({ error: 'Access denied.' }));
+
 // Same-origin SPA + API: reflect no wildcard origin; allow credentialed
 // same-origin fetches. Cross-origin deployments must set CORS_ORIGIN.
 const corsOrigin = process.env.CORS_ORIGIN || null;
@@ -104,6 +110,37 @@ function csrfCheck(req, res, next) {
 function validEmail(e) { return typeof e === 'string' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.trim()); }
 function validPhone(p) { return typeof p === 'string' && /^(09|\+639)\d{9}$/.test(p.replace(/\s/g, '')); }
 
+function validateFileBuffer(buf, originalName) {
+    if (!buf || buf.length === 0) return { ok: false, error: 'Uploaded file is empty.' };
+    const maxBytes = 10 * 1024 * 1024; // 10MB
+    if (buf.length > maxBytes) return { ok: false, error: 'Uploaded file exceeds the maximum size limit of 10 MB.' };
+
+    const ext = (path.extname(originalName || '').toLowerCase().replace(/^\./, '')) || 'bin';
+    if (!['pdf', 'jpg', 'jpeg', 'png'].includes(ext)) {
+        return { ok: false, error: 'Only PDF, JPG, and PNG documents are accepted.' };
+    }
+
+    // Inspect magic bytes for content validation
+    if (ext === 'pdf') {
+        if (buf.length >= 4 && buf[0] === 0x25 && buf[1] === 0x50 && buf[2] === 0x44 && buf[3] === 0x46) {
+            return { ok: true, mime: 'application/pdf', ext: 'pdf' };
+        }
+        return { ok: false, error: 'File content does not match a valid PDF document.' };
+    } else if (ext === 'jpg' || ext === 'jpeg') {
+        if (buf.length >= 3 && buf[0] === 0xFF && buf[1] === 0xD8 && buf[2] === 0xFF) {
+            return { ok: true, mime: 'image/jpeg', ext: 'jpg' };
+        }
+        return { ok: false, error: 'File content does not match a valid JPEG image.' };
+    } else if (ext === 'png') {
+        if (buf.length >= 4 && buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4E && buf[3] === 0x47) {
+            return { ok: true, mime: 'image/png', ext: 'png' };
+        }
+        return { ok: false, error: 'File content does not match a valid PNG image.' };
+    }
+
+    return { ok: false, error: 'Unsupported file format.' };
+}
+
 /* ── Auth endpoints (public: register/login; authenticated: me/logout) ─ */
 app.get('/api/settings/all', async (req, res) => {
     try {
@@ -116,14 +153,29 @@ app.get('/api/settings/all', async (req, res) => {
     }
 });
 
+app.get('/api/auth/check-email', authLimiter, async (req, res) => {
+    try {
+        const email = (req.query.email || '').toLowerCase().trim();
+        if (!email) return res.status(400).json({ available: false, error: 'Email parameter required.' });
+        if (!validEmail(email)) return res.json({ available: false, valid: false, message: 'Invalid email address format.' });
+        const existing = await db.runQuery('SELECT id FROM users WHERE LOWER(email) = ?', [email]);
+        if (existing.length > 0) {
+            return res.json({ available: false, message: 'This email is already registered.' });
+        }
+        return res.json({ available: true, message: 'Email is available.' });
+    } catch (err) {
+        res.status(500).json({ available: false, error: 'Unable to verify email.' });
+    }
+});
+
 app.post('/api/auth/register', authLimiter, async (req, res) => {
     try {
-        const { fullName, email, phone, address, applicantType, password, confirmPassword } = req.body || {};
+        const { fullName, email, phone, address, applicantType, idType, idNumber, password, confirmPassword, idFile } = req.body || {};
         if (!fullName || fullName.trim().length < 3)
             return res.status(400).json({ error: 'Full name must be at least 3 characters.' });
         if (!validEmail(email)) return res.status(400).json({ error: 'Please enter a valid email address.' });
         if (!validPhone(phone || ''))
-            return res.status(400).json({ error: 'Please enter a valid Philippine mobile number (e.g., 09171234567).' });
+            return res.status(400).json({ error: 'Please enter a valid Philippine mobile number (e.g., 09171234567 or +639171234567).' });
         if (!address || address.trim().length < 5)
             return res.status(400).json({ error: 'Please provide a complete address.' });
         if (!password || password.length < 8)
@@ -136,25 +188,97 @@ app.post('/api/auth/register', authLimiter, async (req, res) => {
         if (existing.length > 0)
             return res.status(409).json({ error: 'An account with this email already exists.' });
 
+        // Optional server-validated ID file if uploaded
+        let validIdFileName = null;
+        let validIdFileType = null;
+        let validIdFileSize = null;
+        let validIdUploadedAt = null;
+
+        if (idFile && idFile.data) {
+            const rawBase64 = idFile.data.includes(',') ? idFile.data.split(',')[1] : idFile.data;
+            const fileBuf = Buffer.from(rawBase64, 'base64');
+            const fileValidation = validateFileBuffer(fileBuf, idFile.name);
+            if (!fileValidation.ok) {
+                return res.status(400).json({ error: fileValidation.error });
+            }
+
+            const storageDir = path.join(__dirname, 'storage', 'uploads', 'ids');
+            if (!fs.existsSync(storageDir)) {
+                fs.mkdirSync(storageDir, { recursive: true });
+            }
+
+            const safeOriginal = (idFile.name || `valid_id.${fileValidation.ext}`).replace(/[^a-zA-Z0-9._-]/g, '_');
+            const uniqueStorageName = `ID_${Date.now()}_${Math.random().toString(36).slice(2, 8)}_${safeOriginal}`;
+            const targetPath = path.join(storageDir, uniqueStorageName);
+            fs.writeFileSync(targetPath, fileBuf);
+
+            validIdFileName = uniqueStorageName;
+            validIdFileType = fileValidation.mime;
+            validIdFileSize = fileBuf.length;
+            validIdUploadedAt = new Date().toISOString().slice(0, 19).replace('T', ' ');
+        }
+
         // Public registration creates APPLICANT accounts only — role is forced.
         const id = `USR-${Date.now().toString(36).toUpperCase()}${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
         const initials = fullName.trim().split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase();
         const now = new Date().toISOString().slice(0, 19).replace('T', ' ');
         await db.runAction(
             `INSERT INTO users (id, role, fullName, email, phone, address, passwordHash, status,
-                                createdAt, lastLogin, avatar, designation, applicantType, idType, idNumber)
-             VALUES (?, 'applicant', ?, ?, ?, ?, ?, 'active', ?, NULL, ?, NULL, ?, '', '')`,
+                                createdAt, lastLogin, avatar, designation, applicantType, idType, idNumber,
+                                validIdFileName, validIdFileType, validIdFileSize, validIdUploadedAt)
+             VALUES (?, 'applicant', ?, ?, ?, ?, ?, 'active', ?, NULL, ?, NULL, ?, ?, ?, ?, ?, ?, ?)`,
             [id, fullName.trim(), cleanEmail, phone.trim(), address.trim(),
-             db.hashPassword(password), now, initials, applicantType || 'Individual']);
+             db.hashPassword(password), now, initials, applicantType || 'Individual',
+             idType || 'PhilSys National ID', idNumber ? idNumber.trim() : '',
+             validIdFileName, validIdFileType, validIdFileSize, validIdUploadedAt]);
+
+        // If an ID file was uploaded, record in documents table for audit & municipal review
+        if (validIdFileName) {
+            const docId = `DOC-${Date.now().toString(36).toUpperCase()}${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
+            await db.runAction(
+                `INSERT INTO documents (id, applicationId, requirementId, fileName, fileType, fileSize,
+                                        uploadedAt, status, uploadedBy, reviewedBy, reviewedAt, remarks)
+                 VALUES (?, NULL, 'REQ-VALID-ID', ?, ?, ?, ?, 'Submitted', ?, NULL, NULL, 'Applicant Registration ID')`,
+                [docId, validIdFileName, validIdFileType, validIdFileSize, validIdUploadedAt, id]
+            );
+        }
 
         const sess = await db.createSession(id, req.ip);
         setSessionCookie(res, sess.id);
-        await serverAudit(id, 'REGISTER', 'User', id, 'New applicant registered', req.ip);
+        await serverAudit(id, 'REGISTER', 'User', id, 'New applicant registered with identity verification', req.ip);
         const [rows] = [await db.runQuery('SELECT * FROM users WHERE id = ?', [id])];
         res.status(201).json({ user: publicUser(rows[0]), csrfToken: sess.csrfToken });
     } catch (err) {
         console.error('register:', err.message);
         res.status(500).json({ error: 'Registration failed. Please try again.' });
+    }
+});
+
+// Secure endpoint for authorized ID document retrieval (not accessible publicly)
+app.get('/api/users/:id/valid-id', requireAuth, async (req, res) => {
+    try {
+        const targetUserId = req.params.id;
+        const privileged = ['admin', 'staff', 'official', 'inspector'].includes(req.user.role);
+        if (req.user.id !== targetUserId && !privileged) {
+            return res.status(403).json({ error: 'Access denied.' });
+        }
+        const rows = await db.runQuery('SELECT * FROM users WHERE id = ?', [targetUserId]);
+        if (rows.length === 0 || !rows[0].validIdFileName) {
+            return res.status(404).json({ error: 'No valid ID document on file.' });
+        }
+        const user = rows[0];
+        const storageDir = path.join(__dirname, 'storage', 'uploads', 'ids');
+        const filePath = path.join(storageDir, user.validIdFileName);
+        if (!fs.existsSync(filePath)) {
+            return res.status(404).json({ error: 'Document file not found on storage.' });
+        }
+
+        res.setHeader('Content-Type', user.validIdFileType || 'application/octet-stream');
+        res.setHeader('Content-Disposition', `inline; filename="${user.validIdFileName}"`);
+        res.sendFile(filePath);
+    } catch (err) {
+        console.error('get valid-id:', err.message);
+        res.status(500).json({ error: 'Unable to retrieve document.' });
     }
 });
 
