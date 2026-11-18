@@ -9,28 +9,26 @@
     {
       "type": "Feature",
       "properties": {
-        "NAME": "Municipality of San Jose",
-        "PROVINCE": "Batangas",
-        "REGION": "CALABARZON",
+        "NAME": "Municipality of Buenavista",
+        "PROVINCE": "Agusan del Norte",
+        "REGION": "Caraga (Region XIII)",
         "type": "municipality",
         "source": "Sample Boundary Data - Not Official"
       },
       "geometry": {
         "type": "Polygon",
         "coordinates": [[
-          [121.03, 13.85],
-          [121.08, 13.83],
-          [121.14, 13.84],
-          [121.18, 13.87],
-          [121.20, 13.91],
-          [121.19, 13.96],
-          [121.16, 14.00],
-          [121.11, 14.02],
-          [121.06, 14.01],
-          [121.02, 13.98],
-          [121.00, 13.94],
-          [121.00, 13.90],
-          [121.03, 13.85]
+          [125.3600, 8.9800],
+          [125.4085, 8.9950],
+          [125.4450, 8.9850],
+          [125.4500, 8.9300],
+          [125.4400, 8.8700],
+          [125.4350, 8.8250],
+          [125.3900, 8.8200],
+          [125.3650, 8.8600],
+          [125.3550, 8.9100],
+          [125.3500, 8.9500],
+          [125.3600, 8.9800]
         ]]
       }
     }

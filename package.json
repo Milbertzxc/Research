@@ -8,7 +8,7 @@
     "start": "npm run dev --prefix buenavista",
     "build": "npm run build --prefix buenavista",
     "backend": "node server.js",
-    "test": "node tests/probe-phase2.js; node tests/probe-registration.js"
+    "test": "node tests/probe-phase2.js; node tests/probe-registration.js; node tests/probe-buenavista-seeds.js; node tests/probe-buenavista-auth.js"
   },
   "keywords": [],
   "author": "",

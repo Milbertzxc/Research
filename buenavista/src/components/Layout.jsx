@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Building2, LogOut, Bell, ArrowLeftRight } from 'lucide-react';
 
 const NAV = {
@@ -13,6 +13,10 @@ const NAV = {
     { id: 'review', label: 'Application Review' },
     { id: 'reports', label: 'Evaluation & Inspection' },
   ],
+  zoning: [
+    { id: 'dashboard', label: 'Dashboard' },
+    { id: 'report', label: 'Zoning Inspection Report' },
+  ],
   official: [
     { id: 'dashboard', label: 'Dashboard' },
     { id: 'progress', label: 'Progress & Payments' },
@@ -20,7 +24,7 @@ const NAV = {
   ],
   inspector: [
     { id: 'dashboard', label: 'Dashboard' },
-    { id: 'report', label: 'Inspection Report' },
+    { id: 'report', label: 'Building Inspection Report' },
   ],
   admin: [
     { id: 'dashboard', label: 'Dashboard' },
@@ -30,19 +34,20 @@ const NAV = {
   ],
 };
 
-export default function Layout({ user, page, setPage, onSwitchRole, onLogout, titles, children }) {
+export default function Layout({ user, page, setPage, onSwitchRole, onLogout, titles, children, notifCount = 0, notifications = [], onReadNotifs }) {
   const items = NAV[user.role] ?? [];
+  const [showNotifs, setShowNotifs] = useState(false);
   return (
     <div className="min-h-screen flex">
       {/* Sidebar — Deep Navy */}
-      <aside className="w-60 shrink-0 bg-[#1A365D] text-white flex flex-col fixed inset-y-0 z-20 max-md:-translate-x-full max-md:transition-transform">
+      <aside className="w-60 shrink-0 bg-[#1E3A8A] text-white flex flex-col fixed inset-y-0 z-20 max-md:-translate-x-full max-md:transition-transform">
         <div className="flex items-center gap-3 px-5 py-5 border-b border-white/10">
           <div className="w-10 h-10 rounded-xl bg-[#0D9488] flex items-center justify-center">
             <Building2 size={20} />
           </div>
           <div>
             <div className="font-bold text-sm leading-tight">Buenavista</div>
-            <div className="text-[11px] text-slate-300">Building Permit System</div>
+            <div className="text-[11px] text-slate-300">MPDO / OBO Portal</div>
           </div>
         </div>
         <nav className="flex-1 overflow-y-auto nice-scroll p-3 space-y-1">
@@ -63,16 +68,10 @@ export default function Layout({ user, page, setPage, onSwitchRole, onLogout, ti
             <div className="text-sm font-semibold truncate">{user.name}</div>
             <div className="text-[11px] text-slate-300 truncate">{user.email}</div>
           </div>
-          <button
-            onClick={onSwitchRole}
-            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-slate-200 hover:bg-white/10"
-          >
+          <button onClick={onSwitchRole} className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-slate-200 hover:bg-white/10">
             <ArrowLeftRight size={15} /> Switch Role
           </button>
-          <button
-            onClick={onLogout}
-            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-slate-200 hover:bg-white/10"
-          >
+          <button onClick={onLogout} className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-slate-200 hover:bg-white/10">
             <LogOut size={15} /> Sign Out
           </button>
         </div>
@@ -85,12 +84,22 @@ export default function Layout({ user, page, setPage, onSwitchRole, onLogout, ti
             <h1 className="font-bold text-slate-900 truncate">{titles?.[page] ?? 'Dashboard'}</h1>
             <p className="text-xs text-slate-500">Municipality of Buenavista</p>
           </div>
-          <div className="ml-auto flex items-center gap-2">
-            <button className="relative w-9 h-9 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50">
+          <div className="ml-auto flex items-center gap-2 relative">
+            <button onClick={() => { setShowNotifs((v) => !v); if (notifCount) onReadNotifs?.(); }} className="relative w-9 h-9 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50">
               <Bell size={17} />
-              <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[10px] font-bold rounded-full px-1">2</span>
+              {notifCount > 0 && <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[10px] font-bold rounded-full px-1 min-w-[18px] text-center">{notifCount}</span>}
             </button>
-            <span className="w-9 h-9 rounded-full bg-[#1A365D] text-white flex items-center justify-center text-xs font-bold">
+            {showNotifs && (
+              <div className="absolute right-0 top-11 w-80 max-w-[90vw] bg-white border border-slate-200 rounded-xl shadow-lg p-2 z-30">
+                <div className="px-2 py-1 text-xs font-semibold text-slate-500">Notifications</div>
+                <div className="max-h-64 overflow-y-auto nice-scroll">
+                  {notifications.length ? notifications.slice(0, 8).map((n) => (
+                    <div key={n.id} className="px-2 py-2 text-sm border-t border-slate-50"><div>{n.text}</div><div className="text-[11px] text-slate-400">{n.at}</div></div>
+                  )) : <div className="px-2 py-3 text-sm text-slate-400">No notifications.</div>}
+                </div>
+              </div>
+            )}
+            <span className="w-9 h-9 rounded-full bg-[#1E3A8A] text-white flex items-center justify-center text-xs font-bold">
               {user.name.split(' ').map((w) => w[0]).slice(0, 2).join('')}
             </span>
           </div>

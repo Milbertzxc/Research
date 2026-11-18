@@ -9,13 +9,50 @@ export default function SignIn({ role, onBack, onLogin, onSignUp }) {
   const [remember, setRemember] = useState(true);
   const [show, setShow] = useState(false);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const roleLabel = ROLES.find((r) => r.id === role)?.label ?? role;
 
-  const submit = (e) => {
+  const submit = async (e) => {
     e.preventDefault();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return setError('Enter a valid email address.');
     if (password.length < 8) return setError('Password must be at least 8 characters.');
     setError('');
+    setLoading(true);
+
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ email: email.trim().toLowerCase(), password }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.user) {
+        if (data.csrfToken) {
+          try { sessionStorage.setItem('mpdo_csrf', data.csrfToken); } catch {}
+        }
+        setLoading(false);
+        // Normalize staff role from backend to mpdo for frontend UI
+        const effectiveRole = data.user.role === 'staff' ? 'mpdo' : data.user.role;
+        onLogin({
+          name: data.user.fullName || data.user.name || email.split('@')[0],
+          role: effectiveRole || role,
+          email: data.user.email || email,
+          id: data.user.id,
+        });
+        return;
+      }
+
+      if (res.status === 401 || res.status === 403) {
+        setLoading(false);
+        return setError(data.error || 'Invalid credentials. Please verify your email and password.');
+      }
+    } catch (err) {
+      console.warn('Backend login unavailable, falling back to demo session:', err);
+    }
+
+    setLoading(false);
     onLogin({ ...(DEMO_USERS[role] ?? { name: email.split('@')[0], role }), email });
   };
 
@@ -60,7 +97,9 @@ export default function SignIn({ role, onBack, onLogin, onSignUp }) {
               Remember Me
             </label>
             {error && <div className="text-xs bg-rose-50 text-rose-700 border border-rose-200 rounded-lg px-3 py-2">{error}</div>}
-            <Btn type="submit" className="w-full">Sign In Securely</Btn>
+            <Btn type="submit" disabled={loading} className="w-full">
+              {loading ? 'Authenticating...' : 'Sign In Securely'}
+            </Btn>
             {role === 'applicant' && onSignUp && (
               <div className="text-center text-xs text-slate-600 pt-1">
                 Don't have an account?{' '}

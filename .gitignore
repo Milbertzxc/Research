@@ -5,3 +5,4 @@ buenavista/dist/
 .DS_Store
 .env
 storage/uploads/
+.vscode/chrome-debug-profile/

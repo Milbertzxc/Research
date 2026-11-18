@@ -1,0 +1,30 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Start Full System (serve.ps1)",
+            "type": "shell",
+            "command": "powershell -ExecutionPolicy Bypass -File .\\serve.ps1",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Start Frontend (Vite)",
+            "type": "shell",
+            "command": "npm.cmd run dev --prefix buenavista",
+            "isBackground": true,
+            "problemMatcher": []
+        },
+        {
+            "label": "Start Backend (Express)",
+            "type": "shell",
+            "command": "node server.js",
+            "isBackground": true,
+            "problemMatcher": []
+        }
+    ]
+}
+

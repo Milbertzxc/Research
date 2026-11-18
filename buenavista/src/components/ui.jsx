@@ -3,19 +3,28 @@ import React from 'react';
 export const STATUS_STYLES = {
   Approved: 'bg-emerald-100 text-emerald-800',
   Compliant: 'bg-emerald-100 text-emerald-800',
+  Conforming: 'bg-emerald-100 text-emerald-800',
   Passed: 'bg-emerald-100 text-emerald-800',
   Uploaded: 'bg-emerald-100 text-emerald-800',
   Active: 'bg-emerald-100 text-emerald-800',
   Completed: 'bg-emerald-100 text-emerald-800',
-  Scheduled: 'bg-emerald-100 text-emerald-800',
+  Issued: 'bg-emerald-100 text-emerald-800',
+  Paid: 'bg-emerald-100 text-emerald-800',
+  Scheduled: 'bg-sky-100 text-sky-800',
+  'In Progress': 'bg-sky-100 text-sky-800',
+  Submitted: 'bg-sky-100 text-sky-800',
   Pending: 'bg-amber-100 text-amber-800',
+  Queued: 'bg-amber-100 text-amber-800',
   'Under Review': 'bg-amber-100 text-amber-800',
   'Revision Required': 'bg-amber-100 text-amber-800',
+  Returned: 'bg-amber-100 text-amber-800',
   'Non-Compliant': 'bg-rose-100 text-rose-800',
+  'Non-Conforming': 'bg-rose-100 text-rose-800',
   Rejected: 'bg-rose-100 text-rose-800',
   Failed: 'bg-rose-100 text-rose-800',
   Missing: 'bg-rose-100 text-rose-800',
   Deactivated: 'bg-rose-100 text-rose-800',
+  Conflict: 'bg-rose-100 text-rose-800',
 };
 
 export function Badge({ status, children }) {
@@ -87,11 +96,27 @@ export function Btn({ variant = 'primary', className = '', ...props }) {
     'inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition disabled:opacity-50';
   const styles = {
     primary: 'bg-[#0D9488] text-white hover:bg-[#0B7C72]',
-    navy: 'bg-[#1A365D] text-white hover:bg-[#122642]',
+    navy: 'bg-[#1E3A8A] text-white hover:bg-[#172554]',
     ghost: 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50',
     danger: 'bg-rose-600 text-white hover:bg-rose-700',
+    success: 'bg-emerald-600 text-white hover:bg-emerald-700',
+    warn: 'bg-amber-500 text-white hover:bg-amber-600',
   };
-  return <button className={`${base} ${styles[variant]} ${className}`} {...props} />;
+  return <button className={`${base} ${styles[variant] || styles.primary} ${className}`} {...props} />;
+}
+
+export function Toasts({ toasts = [], onDismiss }) {
+  if (!toasts.length) return null;
+  return (
+    <div className="fixed bottom-4 right-4 z-[60] space-y-2 w-[320px] max-w-[calc(100vw-2rem)]">
+      {toasts.map((t) => (
+        <div key={t.id} className={`rounded-lg shadow-lg border px-4 py-3 text-sm flex items-start gap-2 ${t.tone === 'rose' ? 'bg-rose-50 border-rose-200 text-rose-800' : t.tone === 'amber' ? 'bg-amber-50 border-amber-200 text-amber-800' : 'bg-teal-50 border-teal-200 text-teal-800'}`}>
+          <span className="flex-1">{t.msg}</span>
+          <button onClick={() => onDismiss?.(t.id)} className="opacity-60 hover:opacity-100">×</button>
+        </div>
+      ))}
+    </div>
+  );
 }
 
 export function Steps({ steps, current }) {

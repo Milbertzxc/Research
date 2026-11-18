@@ -1,39 +1,37 @@
 import React from 'react';
-import { Users, UserPlus, HardHat, Stamp, Activity } from 'lucide-react';
-import { AUDIT_FEED } from '../../data/mock.js';
-import { Badge, Btn, Card, CardHeader, StatCard } from '../../components/ui.jsx';
+import { Users, FileStack, ShieldCheck, Activity } from 'lucide-react';
+import { useStore } from '../../store/Store.jsx';
+import { Badge, Card, CardHeader, StatCard, Btn } from '../../components/ui.jsx';
 
 export default function AdminDashboard({ setPage }) {
+  const { state } = useStore();
+  const activeUsers = state.users.filter(u => u.status === 'Active').length;
+  const allApps = state.lcApplications.length + state.bpApplications.length;
+  const approved = [...state.lcApplications, ...state.bpApplications].filter(a => a.status === 'Approved' || a.status === 'Issued').length;
   return (
     <div className="space-y-4">
-      <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-3">
-        <StatCard icon={Users} label="Total Users" value="128" sub="+6 this month" tone="teal" />
-        <StatCard icon={UserPlus} label="Applicants" value="102" tone="indigo" />
-        <StatCard icon={Users} label="MPDO Personnel" value="8" tone="emerald" />
-        <StatCard icon={Stamp} label="Building Officials" value="6" tone="amber" />
-        <StatCard icon={HardHat} label="Inspectors" value="12" tone="rose" />
+      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <StatCard icon={Users} label="Active Users" value={String(activeUsers)} sub={`${state.users.length} total accounts`} tone="indigo" />
+        <StatCard icon={FileStack} label="Total Applications" value={String(allApps)} sub="LC + Building Permits" tone="teal" />
+        <StatCard icon={ShieldCheck} label="Approved / Issued" value={String(approved)} sub="Across all workflows" tone="emerald" />
+        <StatCard icon={Activity} label="Audit Events" value={String(state.auditLogs.length)} sub="Tracked actions" tone="amber" />
       </div>
       <div className="grid lg:grid-cols-2 gap-4">
         <Card>
-          <CardHeader title="Real-Time Audit Activity" subtitle="Latest system events" action={<Activity size={16} className="text-slate-400" />} />
-          <div className="p-4 space-y-3">
-            {AUDIT_FEED.map((a, i) => (
-              <div key={i} className="flex gap-3 text-sm">
-                <span className="w-2 h-2 rounded-full bg-[#0D9488] mt-1.5 shrink-0" />
-                <div><b>{a.actor}</b> — {a.action}<div className="text-xs text-slate-400">{a.time}</div></div>
-              </div>
-            ))}
+          <CardHeader title="Quick Administration" />
+          <div className="p-5 grid sm:grid-cols-2 gap-2">
+            <Btn onClick={()=>setPage('users')}>User & Role Management</Btn>
+            <Btn variant="navy" onClick={()=>setPage('zones')}>GIS / Zones & Settings</Btn>
+            <Btn variant="ghost" onClick={()=>setPage('reports')}>Reports & Analytics</Btn>
+            <Btn variant="ghost" onClick={()=>setPage('zones')}>View Audit Logs</Btn>
           </div>
         </Card>
         <Card>
-          <CardHeader title="Shortcuts" />
-          <div className="p-4 grid sm:grid-cols-3 gap-2">
-            <Btn variant="ghost" onClick={() => setPage('users')}>Manage Users</Btn>
-            <Btn variant="ghost" onClick={() => setPage('zones')}>Zones & Settings</Btn>
-            <Btn variant="navy" onClick={() => setPage('reports')}>View Analytics</Btn>
-          </div>
-          <div className="px-4 pb-4 text-xs text-slate-500">
-            System health: <Badge status="Compliant">Operational</Badge> · backup 2 hrs ago · uptime 99.9%
+          <CardHeader title="Recent Audit Log" subtitle="Real-time system activity" />
+          <div className="divide-y divide-slate-100 max-h-72 overflow-y-auto nice-scroll">
+            {state.auditLogs.slice(0, 10).map((a) => (
+              <div key={a.id} className="px-5 py-3 text-sm"><div className="font-medium text-slate-800">{a.action}</div><div className="text-xs text-slate-500">{a.actor} · {a.at}</div></div>
+            ))}
           </div>
         </Card>
       </div>

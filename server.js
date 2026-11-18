@@ -351,7 +351,8 @@ app.post('/api/auth/change-password', requireAuth, csrfCheck, async (req, res) =
 const HIDDEN_TABLES = new Set(['sessions', 'schema_migrations']);
 const ALLOWED_TABLES = new Set(['settings', 'users', 'barangays', 'requirements',
     'applications', 'documents', 'statusHistory', 'aiResults',
-    'notifications', 'auditLogs', 'remarks', 'roles']);
+    'notifications', 'auditLogs', 'remarks', 'roles',
+    'locational_clearances', 'building_permits', 'inspections', 'payments']);
 
 function checkTable(req, res, next) {
     const t = req.params.table;
@@ -378,6 +379,14 @@ async function filterRows(table, rows, user) {
     switch (table) {
         case 'users': return { rows: rows.filter(r => r.id === user.id) };
         case 'applications': return { rows: rows.filter(r => r.applicantId === user.id) };
+        case 'locational_clearances':
+            return { rows: rows.filter(r => r.applicantEmail === user.email || r.applicant === user.fullName) };
+        case 'building_permits':
+            return { rows: rows.filter(r => r.applicantEmail === user.email || r.applicant === user.fullName) };
+        case 'inspections':
+            return { rows };
+        case 'payments':
+            return { rows };
         case 'barangays': case 'requirements': case 'settings': case 'roles':
             return { rows };
         default: {
@@ -449,6 +458,290 @@ function prepareValue(val) {
     }
     return val;
 }
+
+/* ── Central Database Workflow Endpoints ────────────────────────────── */
+function safeJsonParse(str, fallback) {
+    if (!str) return fallback;
+    if (typeof str !== 'string') return str;
+    try { return JSON.parse(str); } catch { return fallback; }
+}
+
+app.get('/api/workflow/state', async (req, res) => {
+    try {
+        const [rawLcs] = [await db.runQuery('SELECT * FROM locational_clearances ORDER BY createdAt DESC')];
+        const [rawBps] = [await db.runQuery('SELECT * FROM building_permits ORDER BY createdAt DESC')];
+        const [rawInsps] = [await db.runQuery('SELECT * FROM inspections ORDER BY createdAt DESC')];
+        const [rawPays] = [await db.runQuery('SELECT * FROM payments ORDER BY createdAt DESC')];
+        const [rawUsers] = [await db.runQuery('SELECT id, role, fullName as name, email, status FROM users')];
+        const [rawZones] = [await db.runQuery('SELECT id, name, lat, lng FROM barangays')];
+        const [rawAudits] = [await db.runQuery('SELECT id, userId as actor, action, timestamp as at FROM auditLogs ORDER BY timestamp DESC LIMIT 50')];
+        const [rawNotifs] = [await db.runQuery('SELECT id, title, message as text, isRead as `read`, createdAt as at FROM notifications ORDER BY createdAt DESC LIMIT 50')];
+
+        const lcApplications = rawLcs.map(l => ({
+            ...l,
+            docs: safeJsonParse(l.docs, []),
+            timeline: safeJsonParse(l.timeline, []),
+            meta: safeJsonParse(l.meta, {}),
+            payment: {
+                status: l.paymentStatus || 'Pending',
+                or: l.orNumber || '',
+                amount: Number(l.paymentAmount || 0)
+            }
+        }));
+
+        const bpApplications = rawBps.map(b => ({
+            ...b,
+            subforms: safeJsonParse(b.subforms, {}),
+            docs: safeJsonParse(b.docs, []),
+            divisions: safeJsonParse(b.divisions, {}),
+            timeline: safeJsonParse(b.timeline, []),
+            payment: {
+                status: b.paymentStatus || 'Pending',
+                or: b.orNumber || '',
+                amount: Number(b.paymentAmount || 0)
+            },
+            issued: Boolean(b.issued)
+        }));
+
+        const inspections = rawInsps.map(i => ({
+            ...i,
+            checklist: safeJsonParse(i.checklist, {})
+        }));
+
+        res.json({
+            lcApplications,
+            bpApplications,
+            inspections,
+            payments: rawPays,
+            users: rawUsers,
+            zones: rawZones,
+            auditLogs: rawAudits,
+            notifications: rawNotifs
+        });
+    } catch (err) {
+        console.error('GET /api/workflow/state:', err.message);
+        res.status(500).json({ error: 'Failed to retrieve workflow state.' });
+    }
+});
+
+app.post('/api/workflow/lc', async (req, res) => {
+    try {
+        const app = req.body || {};
+        if (!app.id || !app.project) return res.status(400).json({ error: 'id and project are required' });
+
+        const sql = `
+            INSERT INTO locational_clearances
+            (id, applicant, applicantEmail, project, classification, barangay, landUse, zoneId, lat, lng,
+             zoning, status, updated, progress, docs, timeline, remarks, paymentStatus, orNumber, paymentAmount, meta)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON DUPLICATE KEY UPDATE
+            applicant = VALUES(applicant),
+            applicantEmail = VALUES(applicantEmail),
+            project = VALUES(project),
+            classification = VALUES(classification),
+            barangay = VALUES(barangay),
+            landUse = VALUES(landUse),
+            zoneId = VALUES(zoneId),
+            lat = VALUES(lat),
+            lng = VALUES(lng),
+            zoning = VALUES(zoning),
+            status = VALUES(status),
+            updated = VALUES(updated),
+            progress = VALUES(progress),
+            docs = VALUES(docs),
+            timeline = VALUES(timeline),
+            remarks = VALUES(remarks),
+            paymentStatus = VALUES(paymentStatus),
+            orNumber = VALUES(orNumber),
+            paymentAmount = VALUES(paymentAmount),
+            meta = VALUES(meta)
+        `;
+
+        await db.runAction(sql, [
+            app.id,
+            app.applicant || 'Applicant',
+            app.applicantEmail || '',
+            app.project,
+            app.classification || 'Standard Project',
+            app.barangay || '',
+            app.landUse || '',
+            app.zoneId || '',
+            Number(app.lat) || 0,
+            Number(app.lng) || 0,
+            app.zoning || 'Pending',
+            app.status || 'Submitted',
+            app.updated || 'Today',
+            Number(app.progress) || 20,
+            JSON.stringify(app.docs || []),
+            JSON.stringify(app.timeline || []),
+            app.remarks || '',
+            app.payment?.status || app.paymentStatus || 'Pending',
+            app.payment?.or || app.orNumber || '',
+            Number(app.payment?.amount || app.paymentAmount || 0),
+            JSON.stringify(app.meta || {})
+        ]);
+
+        const actor = req.user?.fullName || app.applicant || 'User';
+        await serverAudit(req.user?.id || 'APPLICANT', 'UPSERT_LC', 'LocationalClearance', app.id, `Saved LC application: ${app.project}`, req.ip);
+
+        res.json({ success: true, id: app.id, message: 'Locational Clearance saved to Central Database' });
+    } catch (err) {
+        console.error('POST /api/workflow/lc:', err.message);
+        res.status(500).json({ error: 'Failed to save Locational Clearance to database.' });
+    }
+});
+
+app.post('/api/workflow/bp', async (req, res) => {
+    try {
+        const app = req.body || {};
+        if (!app.id || !app.project) return res.status(400).json({ error: 'id and project are required' });
+
+        const sql = `
+            INSERT INTO building_permits
+            (id, applicant, applicantEmail, project, projectType, barangay, lcRef, status, scope, updated,
+             progress, subforms, docs, divisions, timeline, paymentStatus, orNumber, paymentAmount, issued, permitNo, remarks)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON DUPLICATE KEY UPDATE
+            applicant = VALUES(applicant),
+            applicantEmail = VALUES(applicantEmail),
+            project = VALUES(project),
+            projectType = VALUES(projectType),
+            barangay = VALUES(barangay),
+            lcRef = VALUES(lcRef),
+            status = VALUES(status),
+            scope = VALUES(scope),
+            updated = VALUES(updated),
+            progress = VALUES(progress),
+            subforms = VALUES(subforms),
+            docs = VALUES(docs),
+            divisions = VALUES(divisions),
+            timeline = VALUES(timeline),
+            paymentStatus = VALUES(paymentStatus),
+            orNumber = VALUES(orNumber),
+            paymentAmount = VALUES(paymentAmount),
+            issued = VALUES(issued),
+            permitNo = VALUES(permitNo),
+            remarks = VALUES(remarks)
+        `;
+
+        await db.runAction(sql, [
+            app.id,
+            app.applicant || 'Applicant',
+            app.applicantEmail || '',
+            app.project,
+            app.projectType || 'Standard',
+            app.barangay || '',
+            app.lcRef || '',
+            app.status || 'Submitted',
+            app.scope || '',
+            app.updated || 'Today',
+            Number(app.progress) || 20,
+            JSON.stringify(app.subforms || {}),
+            JSON.stringify(app.docs || []),
+            JSON.stringify(app.divisions || {}),
+            JSON.stringify(app.timeline || []),
+            app.payment?.status || app.paymentStatus || 'Pending',
+            app.payment?.or || app.orNumber || '',
+            Number(app.payment?.amount || app.paymentAmount || 0),
+            app.issued ? 1 : 0,
+            app.permitNo || null,
+            app.remarks || ''
+        ]);
+
+        const actor = req.user?.fullName || app.applicant || 'User';
+        await serverAudit(req.user?.id || 'APPLICANT', 'UPSERT_BP', 'BuildingPermit', app.id, `Saved BP application: ${app.project}`, req.ip);
+
+        res.json({ success: true, id: app.id, message: 'Building Permit saved to Central Database' });
+    } catch (err) {
+        console.error('POST /api/workflow/bp:', err.message);
+        res.status(500).json({ error: 'Failed to save Building Permit to database.' });
+    }
+});
+
+app.post('/api/workflow/inspection', async (req, res) => {
+    try {
+        const insp = req.body || {};
+        if (!insp.id || !insp.project) return res.status(400).json({ error: 'id and project are required' });
+
+        const sql = `
+            INSERT INTO inspections
+            (id, project, ref, barangay, zoneId, date, time, type, status, verdict, inspector, checklist, findings, recommendations)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON DUPLICATE KEY UPDATE
+            project = VALUES(project),
+            ref = VALUES(ref),
+            barangay = VALUES(barangay),
+            zoneId = VALUES(zoneId),
+            date = VALUES(date),
+            time = VALUES(time),
+            type = VALUES(type),
+            status = VALUES(status),
+            verdict = VALUES(verdict),
+            inspector = VALUES(inspector),
+            checklist = VALUES(checklist),
+            findings = VALUES(findings),
+            recommendations = VALUES(recommendations)
+        `;
+
+        await db.runAction(sql, [
+            insp.id,
+            insp.project,
+            insp.ref || '',
+            insp.barangay || '',
+            insp.zoneId || '',
+            insp.date || '',
+            insp.time || '',
+            insp.type || 'Zoning',
+            insp.status || 'Scheduled',
+            insp.verdict || '',
+            insp.inspector || '',
+            JSON.stringify(insp.checklist || {}),
+            insp.findings || '',
+            insp.recommendations || ''
+        ]);
+
+        await serverAudit(req.user?.id || 'INSPECTOR', 'UPSERT_INSPECTION', 'Inspection', insp.id, `Saved inspection: ${insp.id} (${insp.verdict || insp.status})`, req.ip);
+
+        res.json({ success: true, id: insp.id, message: 'Inspection saved to Central Database' });
+    } catch (err) {
+        console.error('POST /api/workflow/inspection:', err.message);
+        res.status(500).json({ error: 'Failed to save inspection.' });
+    }
+});
+
+app.post('/api/workflow/payment', async (req, res) => {
+    try {
+        const { id, or, ref, amount, at, payer, recordedBy } = req.body || {};
+        if (!or || !ref) return res.status(400).json({ error: 'OR number and reference ID are required' });
+
+        const payId = id || `PAY-${Date.now().toString(36).toUpperCase()}`;
+        const amt = Number(amount) || 0;
+
+        await db.runAction(
+            `INSERT INTO payments (id, \`or\`, ref, amount, at, payer, recordedBy) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            [payId, or, ref, amt, at || 'Today', payer || '', recordedBy || req.user?.fullName || 'Cashier']
+        );
+
+        // Update LC if ref is LC
+        await db.runAction(
+            `UPDATE locational_clearances SET paymentStatus = 'Paid', orNumber = ?, paymentAmount = ? WHERE id = ?`,
+            [or, amt, ref]
+        );
+
+        // Update BP if ref is BP
+        await db.runAction(
+            `UPDATE building_permits SET paymentStatus = 'Paid', orNumber = ?, paymentAmount = ? WHERE id = ?`,
+            [or, amt, ref]
+        );
+
+        await serverAudit(req.user?.id || 'OFFICIAL', 'RECORD_PAYMENT', 'Payment', payId, `Recorded payment OR #${or} for ${ref} (${amt})`, req.ip);
+
+        res.json({ success: true, id: payId, message: 'Payment recorded in Central Database' });
+    } catch (err) {
+        console.error('POST /api/workflow/payment:', err.message);
+        res.status(500).json({ error: 'Failed to record payment.' });
+    }
+});
 
 app.get('/api/:table', checkTable, requireAuth, async (req, res) => {
     try {
